@@ -1,0 +1,5 @@
+$TESTDATA_DIR$/withLib.kt
+-libraries
+$TESTDATA_DIR$/folderAsLib
+-output
+$TEMP_DIR$/out.js

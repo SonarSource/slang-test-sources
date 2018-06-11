@@ -1,0 +1,5 @@
+CHAR_LITERAL (''x'')
+WHITE_SPACE ('\n')
+CHAR_LITERAL (''💕'')
+WHITE_SPACE ('\n')
+CHAR_LITERAL (''a'x')

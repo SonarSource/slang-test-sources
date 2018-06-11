@@ -1,0 +1,6 @@
+@Target(AnnotationTarget.EXPRESSION)
+annotation class ann
+
+fun foo(): Int {
+    return (@ann 1)
+}

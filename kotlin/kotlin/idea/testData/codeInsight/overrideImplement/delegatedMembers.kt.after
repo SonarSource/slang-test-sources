@@ -1,0 +1,28 @@
+interface T {
+    fun foo()
+    fun bar()
+}
+
+class C(t :T) : T by t {
+    override fun bar() {
+        <selection><caret>TODO("not implemented") //To change body of created functions use File | Settings | File Templates.</selection>
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
+
+    override fun foo() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+
+    override fun toString(): String {
+        return super.toString()
+    }
+}
+
+// KT-5103

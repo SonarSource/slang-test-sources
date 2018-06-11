@@ -1,0 +1,8 @@
+import foo.A
+import foo.B
+
+class C : A() {
+    override fun foo(x: MutableList<Any?>?, y: String?): B<*> {
+        <selection><caret>TODO("not implemented") //To change body of created functions use File | Settings | File Templates.</selection>
+    }
+}

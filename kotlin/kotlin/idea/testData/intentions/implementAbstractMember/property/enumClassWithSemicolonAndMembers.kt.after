@@ -1,0 +1,16 @@
+// WITH_RUNTIME
+// DISABLE-ERRORS
+interface T<X> {
+    val foo: X
+}
+
+enum class E : T<Int> {
+    A, B, C;
+
+    override val foo: Int
+        get() = <caret><selection>TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.</selection>
+
+    val bar = 1
+
+    fun baz() = 2
+}

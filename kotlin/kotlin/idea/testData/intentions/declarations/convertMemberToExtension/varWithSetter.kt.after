@@ -1,0 +1,9 @@
+// WITH_RUNTIME
+// SKIP_ERRORS_BEFORE
+
+class Owner {
+}
+
+var Owner.p: Int
+    get() = <caret><selection>TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.</selection>
+    set(v) {}

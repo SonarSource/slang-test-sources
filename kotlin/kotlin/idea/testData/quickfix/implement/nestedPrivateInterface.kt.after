@@ -1,0 +1,15 @@
+// "Implement interface" "true"
+// SHOULD_BE_AVAILABLE_AFTER_EXECUTION
+// WITH_RUNTIME
+
+class Container {
+    private interface Base {
+        var z: Double
+    }
+
+    class BaseImpl : Base {
+        override var z: Double
+            get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+            set(value) {}
+    }
+}

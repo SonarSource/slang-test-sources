@@ -1,0 +1,9 @@
+interface A {
+    var Int.foo : Double
+}
+
+class B : A {
+    override var Int.foo: Double
+        get() = <selection><caret>TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.</selection>
+        set(value) {}
+}

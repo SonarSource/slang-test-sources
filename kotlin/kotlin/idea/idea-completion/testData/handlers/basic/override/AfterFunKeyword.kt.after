@@ -1,0 +1,11 @@
+interface I {
+    fun foo(p: Int)
+}
+
+class A : I {
+    override fun foo(p: Int) {
+        <caret><selection>TODO("not implemented") //To change body of created functions use File | Settings | File Templates.</selection>
+    }
+}
+
+// ELEMENT_TEXT: "override fun foo(p: Int) {...}"

@@ -1,0 +1,11 @@
+// "Implement members" "true"
+// WITH_RUNTIME
+abstract class A {
+    abstract fun foo()
+}
+
+class B : A() {
+    override fun foo() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}

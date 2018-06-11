@@ -1,0 +1,3 @@
+local final class `SimpleInTopLevelFunctionKt$main$Local`
+
+public constructor `SimpleInTopLevelFunctionKt$main$Local`()

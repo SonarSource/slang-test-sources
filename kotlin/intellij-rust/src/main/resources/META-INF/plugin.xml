@@ -1,0 +1,710 @@
+<idea-plugin>
+    <id>org.rust.lang</id>
+    <name>Rust</name>
+
+    <vendor>JetBrains</vendor>
+
+    <description><![CDATA[
+      Rust language support
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <a href="https://intellij-rust.github.io/2018/05/21/changelog-74.html">
+                 https://intellij-rust.github.io/2018/05/21/changelog-74.html
+    ]]>
+    </change-notes>
+
+    <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+         on how to target different products -->
+
+    <depends>com.intellij.modules.lang</depends>
+    <depends optional="true" config-file="idea-only.xml">com.intellij.modules.java</depends>
+    <depends optional="true" config-file="clion-only.xml">com.intellij.modules.clion</depends>
+    <depends optional="true" config-file="toml-only.xml">org.toml.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- although Rust module type is only created by IDEA, we need it in other IDEs as well
+             to be able to open a project created in IDEA without errors -->
+        <moduleType id="RUST_MODULE" implementationClass="org.rust.ide.idea.RsModuleType"/>
+
+        <!-- Rust -->
+
+        <!-- Project Creation -->
+
+        <directoryProjectGenerator implementation="org.rust.ide.newProject.RsDirectoryProjectGenerator"/>
+
+        <!-- File-type Factory -->
+
+        <fileTypeFactory implementation="org.rust.lang.RsFileTypeFactory"/>
+        <internalFileTemplate name="Rust File"/>
+
+        <!-- Parser -->
+
+        <lang.parserDefinition language="Rust" implementationClass="org.rust.lang.core.parser.RustParserDefinition"/>
+        <stubElementTypeHolder class="org.rust.lang.core.psi.RsElementTypes"/>
+
+        <!-- Code insight settings -->
+
+        <applicationService serviceInterface="org.rust.ide.settings.RsCodeInsightSettings"
+                            serviceImplementation="org.rust.ide.settings.RsCodeInsightSettings"/>
+
+        <!-- Selection Handler -->
+
+        <extendWordSelectionHandler implementation="org.rust.ide.wordSelection.RsListSelectionHandler"/>
+
+        <!-- Syntax Highlighter -->
+
+        <lang.syntaxHighlighterFactory language="Rust"
+                                       implementationClass="org.rust.ide.highlight.RsHighlighterFactory"/>
+        <highlightUsagesHandlerFactory implementation="org.rust.ide.highlight.RsHighlightExitPointsHandlerFactory"/>
+
+        <!-- Formatter -->
+
+        <lang.formatter language="Rust" implementationClass="org.rust.ide.formatter.RsFormattingModelBuilder"/>
+        <postFormatProcessor implementation="org.rust.ide.formatter.processors.RsTrailingCommaFormatProcessor"/>
+        <preFormatProcessor implementation="org.rust.ide.formatter.processors.RsMatchArmCommaFormatProcessor"/>
+        <preFormatProcessor implementation="org.rust.ide.formatter.processors.RsStatementSemicolonFormatProcessor"/>
+        <preFormatProcessor implementation="org.rust.ide.formatter.processors.RsSingleImportRemoveBracesFormatProcessor"/>
+
+        <!-- Refactoring support -->
+
+        <lang.refactoringSupport language="Rust"
+                                 implementationClass="org.rust.lang.refactoring.RsRefactoringSupportProvider"/>
+
+        <!-- Commenter -->
+
+        <lang.commenter language="Rust" implementationClass="org.rust.ide.commenter.RsCommenter"/>
+
+        <!-- Matchers -->
+
+        <lang.braceMatcher language="Rust" implementationClass="org.rust.ide.typing.RsBraceMatcher"/>
+        <lang.quoteHandler language="Rust" implementationClass="org.rust.ide.typing.RsQuoteHandler"/>
+
+        <!-- Doc-Provider -->
+
+        <lang.documentationProvider language="Rust" implementationClass="org.rust.ide.docs.RsDocumentationProvider"/>
+
+        <lang.implementationTextSelectioner language="Rust"
+                                            implementationClass="org.rust.ide.hints.RsImplementationTextSelectioner"/>
+
+        <!-- Structure View -->
+
+        <lang.psiStructureViewFactory language="Rust"
+                                      implementationClass="org.rust.ide.structure.RsPsiStructureViewFactory"/>
+
+        <treeStructureProvider implementation="org.rust.ide.projectView.RsTreeStructureProvider"/>
+
+        <!-- Usages Provider -->
+
+        <lang.findUsagesProvider language="Rust" implementationClass="org.rust.ide.search.RsFindUsagesProvider"/>
+        <usageTypeProvider implementation="org.rust.ide.search.RsUsageTypeProvider"/>
+
+        <!-- Smart Enter Processor -->
+
+        <lang.smartEnterProcessor language="Rust"
+                                  implementationClass="org.rust.ide.typing.assist.RsSmartEnterProcessor"/>
+
+        <!-- Imports -->
+
+        <lang.importOptimizer language="Rust" implementationClass="org.rust.lang.refactoring.RsImportOptimizer"/>
+        <autoImportOptionsProvider instance="org.rust.ide.settings.RsAutoImportOptions"/>
+
+        <!-- Navigation -->
+
+        <gotoClassContributor implementation="org.rust.ide.navigation.goto.RsClassNavigationContributor"/>
+        <gotoSymbolContributor implementation="org.rust.ide.navigation.goto.RsSymbolNavigationContributor"/>
+        <codeInsight.gotoSuper language="Rust" implementationClass="org.rust.ide.navigation.goto.RsGotoSuperHandler"/>
+        // `ctrl+alt+b`
+        <definitionsScopedSearch implementation="org.rust.ide.navigation.goto.RsImplsSearch"/>
+        <gotoTargetRendererProvider implementation="org.rust.ide.navigation.goto.RsGotoTargetRendererProvider"/>
+        // `ctrl+shift+b`
+        <typeDeclarationProvider implementation="org.rust.ide.navigation.goto.RsTypeDeclarationProvider"/>
+
+        <!-- Hints -->
+
+        <codeInsight.typeInfo language="Rust" implementationClass="org.rust.ide.hints.RsExpressionTypeProvider"/>
+        <codeInsight.parameterInfo language="Rust" implementationClass="org.rust.ide.hints.RsParameterInfoHandler"/>
+        <codeInsight.parameterNameHints language="Rust"
+                                        implementationClass="org.rust.ide.hints.RsInlayParameterHintsProvider"/>
+
+        <!-- Annotator -->
+
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsHighlightingAnnotator"/>
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsHighlightingMutableAnnotator"/>
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsLiteralAnnotator"/>
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsExpressionAnnotator"/>
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsErrorAnnotator"/>
+        <annotator language="Rust" implementationClass="org.rust.ide.annotator.RsSyntaxErrorsAnnotator"/>
+        <externalAnnotator language="Rust" implementationClass="org.rust.ide.annotator.RsCargoCheckAnnotator"/>
+        <highlightRangeExtension implementation="org.rust.ide.annotator.RsErrorAnnotator"/>
+
+        <!-- Line Marker Providers -->
+
+        <codeInsight.lineMarkerProvider language="Rust"
+                                        implementationClass="org.rust.ide.lineMarkers.RsImplsLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Rust"
+                                        implementationClass="org.rust.ide.lineMarkers.RsRecursiveCallLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Rust"
+                                        implementationClass="org.rust.ide.lineMarkers.RsTraitItemImplLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Rust"
+                                        implementationClass="org.rust.ide.lineMarkers.RsCrateDocLineMarkerProvider"/>
+
+        <runLineMarkerContributor language="Rust"
+                                  implementationClass="org.rust.ide.lineMarkers.CargoExecutableRunLineMarkerContributor"/>
+        <runLineMarkerContributor language="Rust"
+                                  implementationClass="org.rust.ide.lineMarkers.CargoTestRunLineMarkerContributor"/>
+
+        <!-- Rename Processor -->
+
+        <renamePsiElementProcessor implementation="org.rust.lang.refactoring.RsRenameProcessor"/>
+
+        <!-- Implement methods -->
+
+        <codeInsight.implementMethod language="Rust"
+                                     implementationClass="org.rust.lang.refactoring.implementMembers.ImplementMembersHandler"/>
+
+        <!-- Completion -->
+
+        <completion.contributor language="Rust"
+                                implementationClass="org.rust.lang.core.completion.RsCompletionContributor"/>
+        <completion.contributor language="Rust"
+                                implementationClass="org.rust.lang.core.completion.RsKeywordCompletionContributor"/>
+
+        <!-- Description Provider -->
+
+        <elementDescriptionProvider implementation="org.rust.ide.presentation.RsDescriptionProvider"/>
+        <breadcrumbsInfoProvider implementation="org.rust.ide.miscExtensions.RsBreadcrumbsInfoProvider"/>
+
+        <!-- Spell-checker -->
+
+        <spellchecker.support language="Rust" implementationClass="org.rust.ide.spelling.RsSpellcheckingStrategy"/>
+
+        <!-- Handlers -->
+
+        <enterHandlerDelegate implementation="org.rust.ide.typing.RsEnterInLineCommentHandler"
+                              id="RustEnterInLineComments"/>
+
+        <enterHandlerDelegate implementation="org.rust.ide.typing.RsEnterInStringLiteralHandler"
+                              id="RustEnterInStringLiterals"/>
+
+        <typedHandler implementation="org.rust.ide.typing.RsRawLiteralHashesInserter"
+                      id="RsRawLiteralHashesInserter"/>
+        <typedHandler implementation="org.rust.ide.typing.RsAngleBraceTypedHandler"
+                      id="RsAngleBraceTypedHandler"/>
+        <typedHandler implementation="org.rust.ide.typing.RsDotTypedHandler"
+                      id="RsDotTypedHandler"/>
+
+        <backspaceHandlerDelegate implementation="org.rust.ide.typing.RsRawLiteralHashesDeleter"
+                                  id="RsRawLiteralHashesDeleter"/>
+        <backspaceHandlerDelegate implementation="org.rust.ide.typing.RsAngleBraceBackspaceHandler"
+                                  id="RsAngleBraceBackspaceHandler"/>
+
+        <joinLinesHandler implementation="org.rust.ide.actions.RsJoinLinesHandler"
+                          id="RsJoinLinesHandler"/>
+
+        <joinLinesHandler implementation="org.rust.ide.actions.RsJoinRawLinesHandler"
+                          id="RsJoinRawLinesHandler"/>
+
+        <!-- Code Style -->
+
+        <codeStyleSettingsProvider implementation="org.rust.ide.formatter.settings.RsCodeStyleSettingsProvider"/>
+        <langCodeStyleSettingsProvider
+            implementation="org.rust.ide.formatter.settings.RsLanguageCodeStyleSettingsProvider"/>
+
+        <!-- Color Settings -->
+
+        <colorSettingsPage implementation="org.rust.ide.colors.RsColorSettingsPage"/>
+
+        <additionalTextAttributes scheme="Default" file="org/rust/ide/colors/RustDefault.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="org/rust/ide/colors/RustDarcula.xml"/>
+
+        <!-- Inspections -->
+
+        <lang.inspectionSuppressor language="Rust"
+                                   implementationClass="org.rust.ide.inspections.RsInspectionSuppressor"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Approximate Constants"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsApproxConstantInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Unsafe CString pointer"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsCStringPointerInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Unresolved reference"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsUnresolvedReferenceInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Double negation"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsDoubleNegInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Suspicious assignment"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsSuspiciousAssignmentInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Dangling else"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsDanglingElseInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Missing else"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsMissingElseInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Dropping reference"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsDropRefInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Argument naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsArgumentNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Associated type naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsAssocTypeNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Constant naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsConstNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Enum naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsEnumNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Enum variant naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsEnumVariantNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Function naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsFunctionNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Lifetime naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsLifetimeNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Macro naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsMacroNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Method naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsMethodNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Module naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsModuleNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Static constant naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsStaticConstNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Self convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsSelfConventionInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Struct naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsStructNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Field naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsFieldNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Trait naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsTraitNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Type alias naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsTypeAliasNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Type parameter naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsTypeParameterNamingInspection"/>
+
+        <localInspection language="Rust" groupPath="Rust" groupName="Naming conventions"
+                         displayName="Variable naming convention"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsVariableNamingInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Extra semicolon"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsExtraSemicolonInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="try! macro usage"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="org.rust.ide.inspections.RsTryMacroInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="println!(&quot;&quot;) usage"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="org.rust.ide.inspections.RsSimplifyPrintInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Simplify boolean expression"
+                         enabledByDefault="false" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsSimplifyBooleanExpressionInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="No mutable required"
+                         enabledByDefault="false" level="WARNING"
+                         implementationClass="org.rust.ide.inspections.RsVariableMutableInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Wrong type parameters number"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsWrongTypeParametersNumberInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Wrong lifetime parameters number"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsWrongLifetimeParametersNumberInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Re-assign immutable variable"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsReassignImmutableInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Borrow checker"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsBorrowCheckerInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Field initialization shorthand"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="org.rust.ide.inspections.RsFieldInitShorthandInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Assert Equal"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="org.rust.ide.inspections.RsAssertEqualInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Experimental checks"
+                         enabledByDefault="false" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsExperimentalChecksInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Type checker"
+                         enabledByDefault="true" level="ERROR"
+                         implementationClass="org.rust.ide.inspections.RsTypeCheckInspection"/>
+
+        <localInspection language="Rust" groupName="Rust"
+                         displayName="Different impl member order from the trait"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="org.rust.ide.inspections.RsSortImplTraitMembersInspection"/>
+
+        <!-- Surrounders -->
+
+        <lang.surroundDescriptor language="Rust"
+                                 implementationClass="org.rust.ide.surroundWith.expression.RsExpressionSurroundDescriptor"/>
+        <lang.surroundDescriptor language="Rust"
+                                 implementationClass="org.rust.ide.surroundWith.statement.RsStatementsSurroundDescriptor"/>
+
+        <!-- Folding -->
+
+        <lang.foldingBuilder language="Rust" implementationClass="org.rust.ide.folding.RsFoldingBuilder"/>
+        <codeFoldingOptionsProvider instance="org.rust.ide.folding.RsCodeFoldingOptionsProvider"/>
+        <applicationService serviceInterface="org.rust.ide.folding.RsCodeFoldingSettings"
+                            serviceImplementation="org.rust.ide.folding.impl.RsCodeFoldingSettingsImpl"/>
+
+        <!-- Live Templates -->
+
+        <defaultLiveTemplatesProvider implementation="org.rust.ide.template.RsLiveTemplatesProvider"/>
+
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Generic"/>
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Statement"/>
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Item"/>
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Struct"/>
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Mod"/>
+        <liveTemplateContext implementation="org.rust.ide.template.RsContextType$Attribute"/>
+
+        <liveTemplateMacro implementation="org.rust.ide.template.macros.RsSuggestIndexNameMacro"/>
+        <liveTemplateMacro implementation="org.rust.ide.template.macros.RsCollectionElementNameMacro"/>
+
+        <!-- Intentions -->
+
+        <intentionAction>
+            <className>org.rust.ide.intentions.ExtractInlineModuleIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.AddDeriveIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.RemoveCurlyBracesIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.AddCurlyBracesIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.RemoveParenthesesFromExprIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.WrapLambdaExprIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.UnwrapSingleExprIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.DemorgansLawIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.SimplifyBooleanExpressionIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.UnwrapToTryIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.AddElseIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.MoveTypeConstraintToWhereClauseIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.MatchToIfLetIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.MoveGuardToMatchArmIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.SetMutableIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.SetImmutableIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.AddImplIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.UnElideLifetimesIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.IfLetToMatchIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.SpecifyTypeExplicitlyIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.ToggleIgnoreTestIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.FillMatchArmsIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.MoveTypeConstraintToParameterListIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+        <intentionAction>
+            <className>org.rust.ide.intentions.FlipBinaryExpressionIntention</className>
+            <category>Rust</category>
+        </intentionAction>
+
+        <!-- Run Configurations -->
+
+        <programRunner implementation="org.rust.cargo.runconfig.RsRunner"/>
+        <configurationType implementation="org.rust.cargo.runconfig.command.CargoCommandConfigurationType"/>
+        <runConfigurationProducer
+            implementation="org.rust.cargo.runconfig.command.CargoExecutableRunConfigurationProducer"/>
+        <runConfigurationProducer implementation="org.rust.cargo.runconfig.test.CargoTestRunConfigurationProducer"/>
+
+        <projectTaskRunner implementation="org.rust.cargo.runconfig.RsProjectTasksRunner"/>
+
+        <!-- Cargo -->
+
+        <projectConfigurable instance="org.rust.cargo.project.configurable.RustProjectConfigurable"
+                             displayName="Rust"
+                             groupId="language"/>
+        <projectService serviceInterface="org.rust.cargo.project.settings.RustProjectSettingsService"
+                        serviceImplementation="org.rust.cargo.project.settings.impl.RustProjectSettingsServiceImpl"/>
+        <projectService serviceInterface="org.rust.cargo.project.model.CargoProjectsService"
+                        serviceImplementation="org.rust.cargo.project.model.impl.CargoProjectsServiceImpl"/>
+
+        <toolWindow id="Cargo"
+                    anchor="right"
+                    factoryClass="org.rust.cargo.project.toolwindow.CargoToolWindowFactory"
+                    icon="/icons/tool-window.svg"/>
+
+        <additionalLibraryRootsProvider
+            implementation="org.rust.cargo.project.workspace.RsAdditionalLibraryRootsProvider"/>
+
+        <!-- Icon Provider -->
+
+        <fileIconProvider implementation="org.rust.cargo.icons.CargoIconProvider"/>
+        <iconProvider implementation="org.rust.ide.icons.RsIconProvider"/>
+
+        <!-- Indices -->
+
+        <stubIndex implementation="org.rust.lang.core.stubs.index.RsModulesIndex"/>
+        <stubIndex implementation="org.rust.lang.core.stubs.index.RsNamedElementIndex"/>
+        <stubIndex implementation="org.rust.lang.core.stubs.index.RsGotoClassIndex"/>
+        <stubIndex implementation="org.rust.lang.core.stubs.index.RsReexportIndex"/>
+
+        <stubIndex implementation="org.rust.lang.core.resolve.indexes.RsImplIndex"/>
+        <stubIndex implementation="org.rust.lang.core.resolve.indexes.RsLangItemIndex"/>
+
+        <!-- Notification Providers -->
+
+        <editorNotificationProvider implementation="org.rust.ide.notifications.MissingToolchainNotificationProvider"/>
+
+        <!-- Editor Tab Title Providers -->
+
+        <editorTabTitleProvider implementation="org.rust.ide.miscExtensions.RsModTabTitleProvider"/>
+
+        <!-- Refactoring -->
+
+        <lang.namesValidator language="Rust" implementationClass="org.rust.lang.refactoring.RsNamesValidator"/>
+
+        <!-- Postfix templates -->
+        <codeInsight.template.postfixTemplateProvider language="Rust"
+                                                      implementationClass="org.rust.ide.template.postfix.RsPostfixTemplateProvider"/>
+
+        <!-- Highlight Visitor -->
+
+        <highlightVisitor implementation="org.rust.ide.highlight.RsRainbowVisitor"/>
+
+        <!-- Move Actions -->
+
+        <moveLeftRightHandler language="Rust" implementationClass="org.rust.ide.actions.RsMoveLeftRightHandler"/>
+        <!--NB: order is important here-->
+        <statementUpDownMover implementation="org.rust.ide.actions.mover.RsCommaListElementUpDownMover"/>
+        <statementUpDownMover implementation="org.rust.ide.actions.mover.RsMatchArmUpDownMover"/>
+        <statementUpDownMover implementation="org.rust.ide.actions.mover.RsItemUpDownMover"/>
+
+    </extensions>
+
+    <application-components>
+        <component>
+            <implementation-class>org.rust.ide.update.UpdateComponent</implementation-class>
+        </component>
+    </application-components>
+
+    <actions>
+        <action id="Rust.NewRustFile"
+                class="org.rust.ide.actions.RsCreateFileAction"
+                text="Rust File"
+                description="Create new Rust file">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+        </action>
+
+        <action id="Rust.Build"
+                class="org.rust.ide.actions.RsBuildAction"
+                text="Build"
+                description="Build Project"
+                icon="AllIcons.Actions.Compile"
+                use-shortcut-of="CompileDirty">
+            <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
+        </action>
+
+        <action id="Rust.RsPromoteModuleToDirectoryAction"
+                class="org.rust.lang.refactoring.RsPromoteModuleToDirectoryAction"
+                text="Promote module to directory"
+                description="Move this module to a dedicated directory">
+            <add-to-group group-id="RefactoringMenu"/>
+        </action>
+
+        <action id="Rust.RsDowngradeModuleToFile"
+                class="org.rust.lang.refactoring.RsDowngradeModuleToFile"
+                text="Downgrade module to file"
+                description="Move this module to a single file">
+            <add-to-group group-id="RefactoringMenu"/>
+        </action>
+
+        <action id="Rust.RsConvertToNamedFields"
+                class="org.rust.lang.refactoring.RsConvertToNamedFieldsAction"
+                text="Convert to named fields"
+                description="Move this module to a single file">
+            <add-to-group group-id="RefactoringMenu"/>
+        </action>
+
+        <action id="Rust.CargoFmtFile"
+                class="org.rust.ide.actions.RustfmtFileAction"
+                text="Reformat file with rustfmt"
+                description="Reformat current file with rustfmt">
+            <add-to-group group-id="CodeMenu" anchor="last"/>
+        </action>
+
+        <action id="Rust.RefreshCargoProject"
+                class="org.rust.ide.actions.RefreshCargoProjectAction"
+                icon="AllIcons.Actions.Refresh"/>
+
+        <action id="Rust.CargoCommand"
+                class="org.rust.cargo.runconfig.command.RunCargoCommandAction"
+                text="Run Cargo command"/>
+
+        <action id="Rust.RunClippy"
+                class="org.rust.cargo.runconfig.command.RunClippyAction"
+                text="Run Clippy"/>
+
+        <action id="Rust.AttachCargoProject"
+                class="org.rust.cargo.project.model.AttachCargoProjectAction"
+                text="Attach Cargo project"
+                icon="AllIcons.ToolbarDecorator.Add"/>
+
+        <action id="Rust.DetachCargoProject"
+                class="org.rust.cargo.project.model.DetachCargoProjectAction"
+                text="Detach Cargo project"
+                icon="AllIcons.ToolbarDecorator.Remove"
+                use-shortcut-of="$Delete"/>
+
+        <group id="Rust.Cargo">
+            <reference id="Rust.RefreshCargoProject"/>
+            <reference id="Rust.CargoCommand"/>
+            <reference id="Rust.RunClippy"/>
+            <separator/>
+            <reference id="Rust.AttachCargoProject"/>
+            <reference id="Rust.DetachCargoProject"/>
+        </group>
+    </actions>
+
+</idea-plugin>

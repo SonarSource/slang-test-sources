@@ -1,0 +1,18 @@
+// "Create member function 'FooIterator.hasNext'" "true"
+class FooIterator<T> {
+    operator fun next(): T {
+        throw Exception("not implemented")
+    }
+
+    operator fun hasNext(): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
+class Foo<T> {
+    operator fun iterator(): FooIterator<T> {
+        throw Exception("not implemented")
+    }
+}
+fun foo() {
+    for (i in Foo<Int>()) { }
+}

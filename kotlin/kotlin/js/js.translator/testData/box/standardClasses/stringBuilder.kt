@@ -1,0 +1,13 @@
+// IGNORE_BACKEND: JS_IR
+// EXPECTED_REACHABLE_NODES: 1108
+package foo
+
+fun box(): String {
+    val s = StringBuilder()
+    s.append("a")
+    s.append("b").append("c")
+    s.append('d').append("e")
+
+    if (s.toString() != "abcde") return s.toString()
+    return "OK"
+}

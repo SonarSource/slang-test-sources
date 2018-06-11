@@ -1,0 +1,6 @@
+<modules>
+    <module name="name" outputDir="whatever" type="java-production">
+        <sources path="duplicateSourcesInModule.kt"/>
+        <sources path="duplicateSourcesInModule.kt"/>
+    </module>
+</modules>

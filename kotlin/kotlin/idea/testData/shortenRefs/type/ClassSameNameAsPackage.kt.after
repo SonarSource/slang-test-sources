@@ -1,0 +1,5 @@
+import same.same
+
+// todo must be: s: same
+fun f(s: same.same) {
+}

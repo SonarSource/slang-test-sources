@@ -1,0 +1,26 @@
+@Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
+annotation class a
+interface A
+interface B
+
+<!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>fun ()<!> {}
+<!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>fun A.()<!> {}
+
+<!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>@a fun ()<!> {}
+<!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>fun @a A.()<!> {}
+
+class Outer {
+    <!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>fun ()<!> {}
+    <!FUNCTION_DECLARATION_WITH_NO_NAME!>fun B.()<!> {}
+
+    <!FUNCTION_DECLARATION_WITH_NO_NAME, CONFLICTING_OVERLOADS!>@a fun ()<!> {}
+    <!FUNCTION_DECLARATION_WITH_NO_NAME!>fun @a A.()<!> {}
+}
+
+fun outerFun() {
+    <!UNUSED_EXPRESSION!>fun () {}<!>
+    <!UNUSED_EXPRESSION!>fun B.() {}<!>
+
+    <!UNUSED_EXPRESSION!>@a fun () {}<!>
+    <!UNUSED_EXPRESSION!>fun @a A.() {}<!>
+}

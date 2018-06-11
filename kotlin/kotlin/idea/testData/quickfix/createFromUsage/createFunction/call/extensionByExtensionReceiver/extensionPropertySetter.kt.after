@@ -1,0 +1,16 @@
+// "Create extension property 'A.foo'" "true"
+class A(val n: Int)
+
+class B {
+    var A.test: Boolean
+        get() = foo
+        set(v: Boolean) {
+            foo = v
+        }
+}
+
+private var A.foo: Boolean
+    get() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+    set() {}

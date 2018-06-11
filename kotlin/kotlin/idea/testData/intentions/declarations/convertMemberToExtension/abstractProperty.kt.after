@@ -1,0 +1,6 @@
+// WITH_RUNTIME
+abstract class Owner {
+}
+
+val Owner.p: Int
+    get() = <caret><selection>TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.</selection>

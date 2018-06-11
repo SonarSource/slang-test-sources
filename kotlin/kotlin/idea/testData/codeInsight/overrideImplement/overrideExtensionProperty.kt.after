@@ -1,0 +1,8 @@
+interface A {
+    val String.prop : Int
+}
+
+class B : A {
+    override val String.prop: Int
+        get() = <selection><caret>TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.</selection>
+}

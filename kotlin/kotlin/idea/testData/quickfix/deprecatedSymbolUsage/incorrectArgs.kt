@@ -1,0 +1,13 @@
+// "class org.jetbrains.kotlin.idea.quickfix.replaceWith.DeprecatedSymbolUsageFix" "false"
+// ERROR: The integer literal does not conform to the expected type String
+
+@Deprecated("", ReplaceWith("newFun()", imports = 123))
+fun oldFun() {
+    newFun()
+}
+
+fun newFun(){}
+
+fun foo() {
+    <caret>oldFun()
+}

@@ -1,0 +1,8 @@
+// "Create extension function 'T.bar'" "true"
+fun <T> foo(t: T) {
+    t.bar()
+}
+
+private fun <T> T.bar() {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+}
