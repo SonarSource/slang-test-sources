@@ -1,0 +1,68 @@
+{{#login-modal screenX=lastX screenY=lastY loginName=loginName loginPassword=loginPassword loginSecondFactor=loginSecondFactor action="login"}}
+  {{#d-modal-body title="login.title" class="login-modal"}}
+    {{#if showLoginButtons}}
+      {{login-buttons
+        showLoginWithEmailLink=showLoginWithEmailLink
+        processingEmailLink=processingEmailLink
+        emailLogin='emailLogin'
+        externalLogin='externalLogin'}}
+    {{/if}}
+
+    {{#if canLoginLocal}}
+      <form id='login-form' method='post'>
+        <div id="credentials">
+          <table>
+            <tr>
+              <td>
+                <label for='login-account-name'>{{i18n 'login.username'}}</label>
+              </td>
+              <td>
+                {{text-field value=loginName type="email" placeholderKey="login.email_placeholder" id="login-account-name" autocorrect="off" autocapitalize="off"}}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for='login-account-password'>{{i18n 'login.password'}}</label>
+              </td>
+              <td>
+                {{text-field value=loginPassword type="password" id="login-account-password" maxlength="200"}}
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <a id="forgot-password-link" {{action "showForgotPassword"}}>{{i18n 'forgot_password.action'}}</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+        {{#second-factor-form secondFactorMethod=secondFactorMethod loginSecondFactor=loginSecondFactor backupEnabled=backupEnabled}}
+          {{second-factor-input value=loginSecondFactor inputId='login-second-factor' secondFactorMethod=secondFactorMethod}}
+        {{/second-factor-form}}
+      </form>
+    {{/if}}
+
+  {{/d-modal-body}}
+
+  <div class="modal-footer">
+    {{#if authenticate}}
+      {{i18n 'login.authenticating'}}
+    {{/if}}
+
+    {{#if canLoginLocal}}
+      {{d-button action="login"
+          icon="unlock"
+          label=loginButtonLabel
+          disabled=loginDisabled
+          class='btn btn-large btn-primary'}}
+
+      {{#if showSignupLink}}
+        <button class="btn btn-large" id="new-account-link" {{action "showCreateAccount"}}>
+          {{i18n 'create_account.title'}}
+        </button>
+      {{/if}}
+    {{/if}}
+  </div>
+  <div class="auth-message">{{authMessage}}</div>
+  <div id='login-alert' class={{alertClass}}>{{alert}}</div>
+{{/login-modal}}

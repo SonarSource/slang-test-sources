@@ -1,0 +1,31 @@
+// styles for the category badge color picker
+
+.category-color-editor {
+  input {
+    width: 70px;
+    margin-right: 10px;
+  }
+
+  .color-title {
+    display: inline-block;
+    width: 120px;
+  }
+
+  .colors-container {
+    display: inline-block;
+    vertical-align: middle;
+    padding-top: 4px;
+    max-width: 240px;
+
+    .colorpicker {
+      border: 1px solid $primary-low;
+      margin-right: 2px;
+      width: 16px;
+      height: 16px;
+      font-size: 0.286em;
+      &.used-color {
+        background: image-url("chosen-sprite.png") -19px 13px;
+      }
+    }
+  }
+}

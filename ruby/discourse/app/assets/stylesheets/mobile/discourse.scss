@@ -1,0 +1,157 @@
+// Mobile
+// global styles that apply to the Discourse application specifically
+// BEWARE: changing these styles implies they take effect anywhere they are seen
+// throughout the Discourse application
+
+// Base Elements
+html {
+  font-size: 15px; // Increasing overall font-size on mobile by 1px
+}
+
+body {
+  background-color: $secondary;
+}
+
+textarea {
+  background-color: $secondary;
+}
+
+blockquote {
+  /* 13px left is intentional here to properly align with post quotes */
+  padding: 10px 8px 10px 13px;
+
+  p {
+    margin: 0 0 10px 0;
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Common classes
+.wrap {
+  padding: 0 10px;
+}
+
+.boxed {
+  .contents {
+    padding: 10px 0 0 0;
+  }
+}
+
+.control-group {
+  margin-bottom: 9px;
+}
+
+.topic-statuses {
+  display: inline-block;
+
+  .topic-status {
+    i {
+      color: $secondary-high;
+    }
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+// categories should not be bold on mobile; they fight with the topic title too much
+.badge-wrapper {
+  font-weight: normal;
+}
+
+.mobile-view .mobile-nav {
+  margin: 0;
+  padding: 0;
+  background: $primary-low;
+  list-style: none;
+  overflow: visible;
+  position: relative;
+  width: 45%;
+
+  &.messages-nav,
+  &.notifications-nav,
+  &.activity-nav,
+  &.preferences-nav {
+    position: absolute;
+    right: 0;
+    top: -57px;
+  }
+
+  a {
+    color: $primary;
+
+    .fa {
+      margin-right: 8px;
+      color: dark-light-choose($primary-medium, $secondary-medium);
+      line-height: $line-height-medium;
+    }
+  }
+
+  > li > a {
+    padding: 8px 10px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .d-icon-caret-down {
+    position: absolute;
+    right: 0;
+  }
+
+  .drop {
+    display: none;
+    &.expanded {
+      left: 0;
+      display: block;
+      position: absolute;
+      z-index: z("dropdown");
+      background-color: $secondary;
+      width: 100%;
+      list-style: none;
+      margin: 0;
+      padding: 5px;
+      border: 1px solid #eaeaea;
+      box-sizing: border-box;
+
+      li {
+        margin: 5px 0;
+        padding: 0;
+
+        a {
+          height: 100%;
+          display: block;
+          padding: 5px 8px;
+        }
+      }
+    }
+  }
+}
+
+.form-vertical {
+  .control-group {
+    margin-bottom: 12px;
+  }
+}
+
+// Special elements
+#main {
+  position: relative;
+}
+
+// Styles used before the user is logged into discourse. For example, activating
+// their account or changing their email.
+#simple-container {
+  width: 90%;
+}
+
+// somehow the image logo assumption inherits margins from earlier in the CSS
+// stack we must remove margins for text site titles
+h1#site-text-logo {
+  margin: 0 0 0 10px;
+}

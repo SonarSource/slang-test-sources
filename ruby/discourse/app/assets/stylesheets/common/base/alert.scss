@@ -1,0 +1,47 @@
+.alert {
+  padding: 8px 35px 8px 14px;
+  background-color: $danger-low;
+  color: #c09853;
+
+  .close {
+    position: relative;
+    top: -2px;
+    right: -21px;
+    line-height: $line-height-small;
+    float: right;
+    font-size: $font-up-3;
+    font-weight: bold;
+    color: $primary;
+    opacity: 0.2;
+    filter: alpha(opacity = 20);
+    @include hover {
+      color: $primary;
+      text-decoration: none;
+      cursor: pointer;
+      opacity: 0.4;
+      filter: alpha(opacity = 40);
+    }
+  }
+  button.close {
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+  }
+  &.alert-success {
+    background-color: $success-medium;
+    color: $primary;
+  }
+  &.alert-error {
+    background-color: rgba($danger-low, 0.5);
+    color: $primary;
+  }
+  &.alert-info {
+    background-color: $tertiary-low;
+    color: $primary;
+    &.clickable {
+      color: $tertiary;
+    }
+  }
+}

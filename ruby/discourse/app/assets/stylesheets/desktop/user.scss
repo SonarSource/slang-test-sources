@@ -1,0 +1,317 @@
+// Desktop styles for "/user" section
+.user-right {
+  display: table-cell;
+
+  &,
+  > .user-stream {
+    > .alert:first-child {
+      margin-top: 10px;
+    }
+  }
+
+  .show-mores {
+    position: absolute;
+  }
+}
+
+.profile-image {
+  height: 420px;
+  width: 100%;
+  background-size: cover;
+  transition: height 0.15s linear;
+}
+
+.no-background {
+  .profile-image {
+    height: 200px;
+  }
+}
+
+.form-horizontal .control-group.category {
+  margin-top: 18px;
+}
+
+.user-table {
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+
+  .wrapper {
+    display: table-row;
+  }
+}
+
+.user-navigation {
+  display: table-cell;
+  vertical-align: top;
+  width: 170px;
+
+  .nav-stacked {
+    background-color: transparent;
+
+    li {
+      border-bottom: none;
+
+      &.archive {
+        padding-left: 15px;
+      }
+    }
+
+    a {
+      color: dark-light-choose($primary-medium, $secondary-high);
+
+      &.active {
+        color: $primary;
+        font-weight: bold;
+        background-color: transparent;
+
+        &:after {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+.user-content {
+  padding: 10px 8px;
+  background-color: $secondary;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+
+  &.user-badges-list {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .btn.right {
+    float: right;
+  }
+
+  h2 {
+    margin-bottom: 10px;
+  }
+}
+
+.pref-avatar {
+  .avatar {
+    max-width: 45px;
+    max-height: 45px;
+  }
+}
+
+.pref-second-factor {
+  margin-top: 10px;
+}
+
+.user-invite-list {
+  width: 100%;
+  margin-top: 15px;
+
+  th {
+    text-align: left;
+    padding: 0 0 10px 0;
+    color: dark-light-choose($primary-medium, $secondary-medium);
+    font-weight: normal;
+  }
+
+  td {
+    padding: 10px 0 10px 0;
+    border-bottom: 1px solid $primary-low;
+  }
+}
+
+.user-invite-search {
+  clear: both;
+  margin: 15px 0px -15px 0px;
+}
+
+.user-invite-none {
+  clear: both;
+  padding: 15px;
+}
+
+.user-main {
+  margin-bottom: 50px;
+
+  .about {
+    background-position: center center;
+    background-size: cover;
+
+    &.group {
+      .details {
+        padding: 15px 0;
+        margin: 0;
+        color: dark-light-choose(lighten($primary, 10%), $secondary);
+      }
+    }
+
+    .details {
+      padding: 0 0 4px 0;
+      margin-top: -200px;
+      transition: margin 0.15s linear;
+
+      img.avatar {
+        margin: 0 20px 10px 0;
+        transition: all 0.1s linear;
+      }
+
+      .primary {
+        .primary-textual {
+          padding: 3px;
+          a[href] {
+            text-decoration: underline;
+          }
+          .location-and-website {
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .bio {
+          max-width: 750px;
+
+          a.mention {
+            text-decoration: none;
+          }
+        }
+      }
+    }
+
+    &.has-background {
+      .details {
+        padding: 15px 15px 4px 15px;
+      }
+    }
+
+    .controls {
+      padding: 0 0 12px 0;
+      float: right;
+      text-align: right;
+
+      a {
+        width: 140px;
+      }
+
+      .right {
+        float: right;
+        margin-left: 5px;
+      }
+    }
+
+    &.collapsed-info {
+      .controls {
+        width: auto;
+
+        ul {
+          li {
+            display: inline;
+          }
+
+          a {
+            padding: 5px 10px;
+            margin-bottom: 10px;
+            width: auto;
+          }
+        }
+      }
+
+      .details {
+        padding: 0 0 2px 0;
+        border-bottom: 1px solid $primary-low;
+      }
+
+      &.has-background {
+        .details {
+          padding: 12px 15px 2px 15px;
+        }
+      }
+    }
+  }
+
+  .staff-counters {
+    margin-bottom: 20px;
+  }
+
+  .user-field {
+    input[type="text"] {
+      width: 530px;
+    }
+
+    .controls {
+      .instructions {
+        display: block;
+      }
+    }
+  }
+
+  .public-user-fields {
+    overflow: hidden;
+  }
+
+  .viewing-self & .about.collapsed-info {
+    .secondary,
+    .staff-counters {
+      display: inherit;
+    }
+  }
+}
+
+.user-preferences {
+  display: table-cell;
+  vertical-align: top;
+  padding-top: 10px;
+  padding-left: 30px;
+
+  h3 {
+    color: $primary;
+    margin: 20px 0 10px 0;
+  }
+
+  textarea {
+    width: 530px;
+  }
+
+  .category-selector,
+  .tag-chooser {
+    width: 530px;
+  }
+
+  input {
+    &.user-selector {
+      width: 530px;
+    }
+
+    &[type="text"] {
+      @include breakpoint(medium) {
+        width: 450px;
+      }
+    }
+  }
+
+  .instructions {
+    display: inline-block;
+    margin-top: 0;
+  }
+
+  .pref-mailing-list-mode .controls {
+    select {
+      width: 400px;
+    }
+  }
+
+  .notifications,
+  .category-notifications,
+  .tag-notifications,
+  .user-custom-preferences-outlet {
+    .controls select {
+      width: 280px;
+    }
+  }
+
+  .user-main & .user-field.text {
+    padding-top: 0;
+  }
+}

@@ -1,0 +1,34 @@
+<div id='simple-container'>
+    <h2><%= t 'activation.welcome_to', site_name: SiteSetting.title %></h2>
+    <br/>
+    <button class='btn btn-primary' id='activate-account-button'><%= t 'activation.action' %></button>
+
+    <%= form_tag(perform_activate_account_path, method: :put, id: 'activate-account-form') do %>
+      <%= hidden_field_tag 'password_confirmation' %>
+      <%= hidden_field_tag 'challenge' %>
+    <% end %>
+</div>
+
+<%- content_for(:no_ember_head) do %>
+  <%= preload_script "ember_jquery" %>
+  <%= preload_script "vendor" %>
+  <%= render_google_universal_analytics_code %>
+<%- end %>
+
+<script language="javascript">
+  (function() {
+    setTimeout(function() {
+      var $activateButton = $('#activate-account-button');
+      $activateButton.on('click', function() {
+        $activateButton.prop('disabled', true);
+        $.ajax("<%= path "/u/hp" %>").then(function(hp) {
+          $('#password_confirmation').val(hp.value);
+          $('#challenge').val(hp.challenge.split("").reverse().join(""));
+          $('#activate-account-form').submit();
+        }).fail(function() {
+          $activateButton.prop('disabled', false);
+        });
+      });
+    }, 50);
+  })();
+</script>

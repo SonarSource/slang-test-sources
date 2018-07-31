@@ -1,0 +1,55 @@
+String lookupProperty(Project project, String gradlePropName, String envVarName) {
+    return project.hasProperty(gradlePropName) ? project.property(gradlePropName) : System.getenv()[envVarName]
+}
+
+Object[] versionInfo = screengrabVersion(rootProject.file('version.properties'))
+String versionNameString = versionInfo[0] as String
+int versionCodeInt = versionInfo[1] as int
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.novoda:bintray-release:0.3.4'
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
+
+    defaultConfig {
+        versionCode versionCodeInt
+        versionName versionNameString
+        minSdkVersion 8
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+publish {
+    userOrg = 'fastlane'
+    repoName = 'fastlane'
+    groupId = 'tools.fastlane'
+    artifactId = 'screengrab'
+    publishVersion = versionNameString
+    website = 'https://docs.fastlane.tools/actions/screengrab/'
+    bintrayUser = lookupProperty(project, 'bintrayUser', 'BINTRAY_USER')
+    bintrayKey = lookupProperty(project, 'bintrayKey', 'BINTRAY_KEY')
+}
+
+dependencies {
+    compile "com.android.support:support-annotations:25.1.0"
+    compile 'com.android.support.test:runner:0.5'
+    compile 'com.android.support.test:rules:0.5'
+    compile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    compile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.2'
+    compile 'com.jraska:falcon:1.0.4'
+}

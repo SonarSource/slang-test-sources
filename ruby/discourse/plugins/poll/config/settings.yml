@@ -1,0 +1,13 @@
+plugins:
+  poll_enabled:
+    default: true
+    client: true
+  poll_maximum_options:
+    default: 20
+    client: true
+  poll_edit_window_mins:
+    default: 5
+  poll_minimum_trust_level_to_create:
+    default: 1
+    client: true
+    enum: 'TrustLevelSetting'

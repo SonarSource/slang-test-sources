@@ -1,0 +1,11 @@
+<div class='container'>
+  <div class='queued-posts'>
+    {{#each model as |post|}}
+      {{queued-post post=post currentlyEditing=editing removePost="removePost"}}
+    {{else}}
+      <p>{{i18n "queue.none"}}</p>
+    {{/each}}
+
+    {{d-button action="refresh" label="refresh" icon="refresh" disabled=model.refreshing id='refresh-queued'}}
+  </div>
+</div>

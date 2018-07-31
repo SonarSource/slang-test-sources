@@ -1,0 +1,71 @@
+// styles that apply to the popup that appears when you show the edit history of a post
+
+.modal.history-modal {
+  .modal-inner-container {
+    max-width: 960px;
+  }
+  .modal-body {
+    height: 70vh;
+  }
+  #revision-controls {
+    .btn[disabled] {
+      cursor: not-allowed;
+      background-color: $primary-low;
+    }
+    .btn-danger[disabled] {
+      background-color: $danger-medium;
+    }
+  }
+  #display-modes {
+    text-align: right;
+    display: inline-block;
+    float: right;
+
+    .btn {
+      background-color: inherit;
+      color: blend-primary-secondary(50%);
+    }
+    .btn-primary {
+      color: $primary;
+      font-weight: bold;
+    }
+  }
+
+  #revisions {
+    word-wrap: break-word;
+    table {
+      margin-top: 10px;
+    }
+  }
+  img {
+    max-width: 670px;
+    height: auto;
+  }
+  .inline-diff {
+    width: 670px;
+  }
+  .markdown {
+    font-family: monospace;
+    font-size: $font-down-1;
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    td {
+      width: 50%;
+      vertical-align: top;
+      max-width: 440px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+  }
+  .revision-content,
+  .markdown {
+    img {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+  }
+  .modal-header {
+    height: 42px;
+  }
+}

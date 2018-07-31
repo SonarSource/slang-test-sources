@@ -1,0 +1,51 @@
+// --------------------------------------------------
+// Discourse header
+// --------------------------------------------------
+
+.d-header {
+  left: 0;
+  padding-top: 3px;
+  height: 4.2857em;
+  .d-icon-home {
+    padding: 8px;
+    font-size: $font-up-5;
+  }
+
+  .site-text-logo {
+    position: relative;
+    top: 10px;
+  }
+}
+
+@media all and (max-width: 570px) {
+  .extra-info-wrapper {
+    display: none;
+  }
+}
+
+#main {
+  position: relative;
+}
+
+#main-outlet {
+  padding-top: 5.8572em;
+}
+
+.search-link .blurb {
+  color: dark-light-choose($primary-high, $secondary-medium);
+  display: block;
+  word-wrap: break-word;
+  font-size: $font-down-2;
+  line-height: $line-height-large;
+  .search-highlight {
+    color: dark-light-choose($primary-high, $secondary-low);
+  }
+}
+
+header {
+  #site-text-logo {
+    font-size: $font-up-3;
+    margin-top: 0.4em;
+    line-height: $line-height-medium;
+  }
+}

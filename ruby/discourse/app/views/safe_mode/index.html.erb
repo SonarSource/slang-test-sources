@@ -1,0 +1,34 @@
+<div class='container safe-mode'>
+  <h2><%= t 'safe_mode.title'%></h2>
+  <%= form_tag(safe_mode_enter_path) do %>
+    <p>
+      <%= t 'safe_mode.description' %>
+    </p>
+    <p>
+    <label>
+    <%= check_box_tag 'no_customizations', true, !flash[:must_select]%>
+    <%= t 'safe_mode.no_customizations' %>
+    </label>
+    </p>
+    <p>
+    <label>
+    <%= check_box_tag 'only_official', true, !flash[:must_select] %>
+    <%= t 'safe_mode.only_official' %>
+    </label>
+    </p>
+    <p>
+    <label>
+    <%= check_box_tag 'no_plugins', true, !flash[:must_select] %>
+    <%= t 'safe_mode.no_plugins' %>
+    </label>
+    </p>
+    <p>
+      <%= submit_tag t('safe_mode.enter'), class: 'btn btn-danger' %>
+      <%- if flash[:must_select] %>
+        <span class='safe-mode-warning'>
+          <i class='fa fa-warning'></i> <%= t 'safe_mode.must_select' %>
+        </span>
+      <%- end %>
+    </p>
+  <% end %>
+</div>

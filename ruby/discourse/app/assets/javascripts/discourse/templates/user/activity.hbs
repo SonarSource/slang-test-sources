@@ -1,0 +1,34 @@
+{{#d-section pageClass="user-activity" class="user-navigation" scrollTop="false"}}
+  {{#mobile-nav class='activity-nav' desktopClass='action-list activity-list nav-stacked' currentPath=application.currentPath}}
+    <li>
+      {{#link-to 'userActivity.index'}}{{i18n 'user.filters.all'}}{{/link-to}}
+    </li>
+    <li>
+      {{#link-to 'userActivity.topics'}}{{i18n 'user_action_groups.4'}}{{/link-to}}
+    </li>
+    <li>
+      {{#link-to 'userActivity.replies'}}{{i18n 'user_action_groups.5'}}{{/link-to}}
+    </li>
+    <li>
+      {{#link-to 'userActivity.likesGiven'}}{{i18n 'user_action_groups.1'}}{{/link-to}}
+    </li>
+    {{#if user.showBookmarks}}
+    <li>
+      {{#link-to 'userActivity.bookmarks'}}{{i18n 'user_action_groups.3'}}{{/link-to}}
+    </li>
+    {{/if}}
+    {{plugin-outlet name="user-activity-bottom"
+                    connectorTagName='li'
+                    args=(hash model=model)}}
+  {{/mobile-nav}}
+
+  {{#if canDownloadPosts}}
+    <div class='user-archive'>
+      {{d-button action="exportUserArchive" label="user.download_archive.button_text" icon="download"}}
+    </div>
+  {{/if}}
+{{/d-section}}
+
+<section class='user-right'>
+  {{outlet}}
+</section>

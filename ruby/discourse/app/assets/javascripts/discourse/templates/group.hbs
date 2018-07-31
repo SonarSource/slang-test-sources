@@ -1,0 +1,68 @@
+{{plugin-outlet name="before-group-container" args=(hash group=model)}}
+
+<div class="container group {{model.name}}">
+  <div class='group-details-container'>
+    <div class='group-info'>
+      {{#if model.flair_url}}
+        <span class='group-avatar-flair'>
+          {{avatar-flair
+            flairURL=model.flair_url
+            flairBgColor=model.flair_bg_color
+            flairColor=model.flair_color
+            groupName=model.name}}
+        </span>
+      {{/if}}
+
+      <span>
+        <span class='group-info-name'>{{groupName}}</span>
+
+        <div>
+          {{#if model.full_name}}<span class='group-info-full-name'>{{model.name}}</span>{{/if}}
+        </div>
+      </span>
+    </div>
+
+    {{#if model.bio_cooked}}
+      <hr>
+
+      <div class='group-bio'>
+        <p>{{{model.bio_cooked}}}</p>
+      </div>
+    {{/if}}
+
+    <div class="group-details-button">
+      {{group-membership-button
+          class="inline"
+          model=model
+          showLogin='showLogin'}}
+
+      {{#if displayGroupMessageButton}}
+        {{d-button
+            action="messageGroup"
+            class="btn-primary group-message-button inline"
+            icon="envelope"
+            label="groups.message"}}
+      {{/if}}
+
+      {{#if currentUser.admin}}
+        {{d-button action="destroy"
+            disabled=destroying
+            icon="trash"
+            class='btn-danger'
+            label="admin.groups.delete"}}
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="list-controls">
+    <div class="container">
+      {{group-navigation group=model currentPath=application.currentPath tabs=tabs}}
+    </div>
+  </div>
+
+    <div class='user-table'>
+      <div class='wrapper'>
+        {{outlet}}
+      </div>
+    </div>
+</div>
