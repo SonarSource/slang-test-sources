@@ -1,0 +1,25 @@
+PATH
+  remote: ..
+  specs:
+    twirp (0.5.2)
+      faraday (~> 0)
+      google-protobuf (~> 3.0, >= 3.0.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    faraday (0.14.0)
+      multipart-post (>= 1.2, < 3)
+    google-protobuf (3.5.1.2-universal-darwin)
+    multipart-post (2.0.0)
+    rack (2.0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rack
+  twirp!
+
+BUNDLED WITH
+   1.16.1
