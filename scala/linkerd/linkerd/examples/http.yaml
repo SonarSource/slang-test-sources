@@ -1,0 +1,26 @@
+# HTTP protocol
+namers:
+- kind: io.l5d.fs
+  rootDir: linkerd/examples/io.l5d.fs
+
+routers:
+- protocol: http
+  httpAccessLog: logs/access.log
+  httpAccessLogRollPolicy: daily
+  httpAccessLogAppend: true
+  httpAccessLogRotateCount: -1
+  maxChunkKB: 16
+  maxHeadersKB: 16
+  maxInitialLineKB: 16
+  maxRequestKB: 102400 # 100MB
+  maxResponseKB: 102400 # 100MB
+  compressionLevel: 9
+  identifier: {kind: io.l5d.header}
+  dtab: |
+    /svc => /#/io.l5d.fs;
+  servers:
+  - port: 4140
+    ip: 0.0.0.0
+    addForwardedHeader:
+      by: {kind: "ip:port"}
+      for: {kind: "ip"}

@@ -1,0 +1,9 @@
+admin:
+  port: 9991
+storage:
+  kind: io.l5d.etcd
+  pathPrefix: /dtabs
+namers: []
+interfaces:
+- kind: io.l5d.thriftNameInterpreter
+- kind: io.l5d.httpController

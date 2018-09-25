@@ -1,0 +1,123 @@
+package org.http4s
+package server
+package middleware
+
+import cats._
+import cats.data.Kleisli
+import fs2._
+import fs2.Stream._
+import fs2.compress._
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.zip.{CRC32, Deflater}
+import org.http4s.headers._
+import org.log4s.getLogger
+
+object GZip {
+  private[this] val logger = getLogger
+
+  // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
+  // TODO      zipping and buffering all the input. Just a thought.
+  def apply[F[_]: Functor](
+      service: HttpService[F],
+      bufferSize: Int = 32 * 1024,
+      level: Int = Deflater.DEFAULT_COMPRESSION,
+      isZippable: Response[F] => Boolean = defaultIsZippable[F](_: Response[F])): HttpService[F] =
+    Kleisli { req =>
+      req.headers.get(`Accept-Encoding`) match {
+        case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
+          service.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
+        case _ => service(req)
+      }
+    }
+
+  def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
+    val contentType = resp.headers.get(`Content-Type`)
+    resp.headers.get(`Content-Encoding`).isEmpty &&
+    (contentType.isEmpty || contentType.get.mediaType.compressible ||
+    (contentType.get.mediaType eq MediaType.`application/octet-stream`))
+  }
+
+  private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
+    acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
+      ContentCoding.`x-gzip`)
+
+  private def zipOrPass[F[_]: Functor](
+      response: Response[F],
+      bufferSize: Int,
+      level: Int,
+      isZippable: Response[F] => Boolean): Response[F] =
+    response match {
+      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
+      case resp => resp // Don't touch it, Content-Encoding already set
+    }
+
+  private def zipResponse[F[_]: Functor](
+      bufferSize: Int,
+      level: Int,
+      resp: Response[F]): Response[F] = {
+    logger.trace("GZip middleware encoding content")
+    // Need to add the Gzip header and trailer
+    val trailerGen = new TrailerGen()
+    val b = chunk(header) ++
+      resp.body
+        .through(trailer(trailerGen, bufferSize.toLong))
+        .through(
+          deflate(
+            level = level,
+            nowrap = true,
+            bufferSize = bufferSize
+          )) ++
+      chunk(trailerFinish(trailerGen))
+    resp
+      .removeHeader(`Content-Length`)
+      .putHeaders(`Content-Encoding`(ContentCoding.gzip))
+      .copy(body = b)
+  }
+
+  private val GZIP_MAGIC_NUMBER = 0x8b1f
+  private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
+
+  private val header: Chunk[Byte] = Chunk.bytes(
+    Array(
+      GZIP_MAGIC_NUMBER.toByte, // Magic number (int16)
+      (GZIP_MAGIC_NUMBER >> 8).toByte, // Magic number  c
+      Deflater.DEFLATED.toByte, // Compression method
+      0.toByte, // Flags
+      0.toByte, // Modification time (int32)
+      0.toByte, // Modification time  c
+      0.toByte, // Modification time  c
+      0.toByte, // Modification time  c
+      0.toByte, // Extra flags
+      0.toByte
+    ) // Operating system
+  )
+
+  private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
+
+  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Long): Pipe[Pure, Byte, Byte] =
+    _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).stream
+
+  private def trailerStep(gen: TrailerGen, maxReadLimit: Long): (Option[
+    (Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
+    case None => Pull.pure(None)
+    case Some((segment, stream)) =>
+      //Avoid copying chunk toARray
+      segment.force.foreachChunk { c =>
+        val byteChunk = c.toBytes
+        gen.crc.update(byteChunk.values, byteChunk.offset, byteChunk.length)
+        gen.inputLength = gen.inputLength + byteChunk.length
+      }
+      Pull.output(segment) >> stream.pull
+        .unconsLimit(maxReadLimit)
+        .flatMap(trailerStep(gen, maxReadLimit))
+  }
+
+  private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
+    Chunk.bytes(
+      ByteBuffer
+        .allocate(Integer.BYTES * 2)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(gen.crc.getValue.toInt)
+        .putInt((gen.inputLength % GZIP_LENGTH_MOD).toInt)
+        .array())
+}

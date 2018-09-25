@@ -1,0 +1,221 @@
+package com.twitter.finagle.service
+
+import com.twitter.finagle.Filter.TypeAgnostic
+import com.twitter.finagle._
+import com.twitter.finagle.stats.{
+  ExceptionStatsHandler,
+  MultiCategorizingExceptionStatsHandler,
+  StatsReceiver
+}
+import com.twitter.util._
+import java.util.concurrent.atomic.LongAdder
+import java.util.concurrent.TimeUnit
+import scala.util.control.NonFatal
+
+object StatsFilter {
+  val role: Stack.Role = Stack.Role("RequestStats")
+
+  /**
+   * Configures a [[StatsFilter.module]] to track latency using the
+   * given [[TimeUnit]].
+   */
+  case class Param(unit: TimeUnit) {
+    def mk(): (Param, Stack.Param[Param]) = (this, Param.param)
+  }
+
+  object Param {
+    implicit val param = Stack.Param(Param(TimeUnit.MILLISECONDS))
+  }
+
+  /**
+   * Creates a [[com.twitter.finagle.Stackable]] [[com.twitter.finagle.service.StatsFilter]].
+   */
+  def module[Req, Rep]: Stackable[ServiceFactory[Req, Rep]] =
+    new Stack.Module4[
+      param.Stats,
+      param.ExceptionStatsHandler,
+      param.ResponseClassifier,
+      Param,
+      ServiceFactory[Req, Rep]
+    ] {
+      val role: Stack.Role = StatsFilter.role
+      val description: String = "Report request statistics"
+      def make(
+        _stats: param.Stats,
+        _exceptions: param.ExceptionStatsHandler,
+        _classifier: param.ResponseClassifier,
+        _param: Param,
+        next: ServiceFactory[Req, Rep]
+      ): ServiceFactory[Req, Rep] = {
+        val param.Stats(statsReceiver) = _stats
+        val param.ExceptionStatsHandler(handler) = _exceptions
+        val classifier = _classifier.responseClassifier
+        if (statsReceiver.isNull)
+          next
+        else
+          new StatsFilter(statsReceiver, classifier, handler, _param.unit).andThen(next)
+      }
+    }
+
+  /** Basic categorizer with all exceptions under 'failures'. */
+  val DefaultExceptions = new MultiCategorizingExceptionStatsHandler(
+    mkFlags = FailureFlags.flagsOf,
+    mkSource = SourcedException.unapply
+  ) {
+
+    override def toString: String = "DefaultCategorizer"
+  }
+
+  private val SyntheticException =
+    new ResponseClassificationSyntheticException()
+
+  def typeAgnostic(
+    statsReceiver: StatsReceiver,
+    exceptionStatsHandler: ExceptionStatsHandler
+  ): TypeAgnostic =
+    typeAgnostic(
+      statsReceiver,
+      ResponseClassifier.Default,
+      exceptionStatsHandler,
+      TimeUnit.MILLISECONDS
+    )
+
+  def typeAgnostic(
+    statsReceiver: StatsReceiver,
+    responseClassifier: ResponseClassifier,
+    exceptionStatsHandler: ExceptionStatsHandler,
+    timeUnit: TimeUnit
+  ): TypeAgnostic = new TypeAgnostic {
+    def toFilter[Req, Rep]: Filter[Req, Rep, Req, Rep] =
+      new StatsFilter[Req, Rep](statsReceiver, responseClassifier, exceptionStatsHandler, timeUnit)
+  }
+
+}
+
+/**
+ * A `StatsFilter` reports request statistics including number of requests,
+ * number successful and request latency to the given [[StatsReceiver]].
+ *
+ * @param responseClassifier used to determine when a response
+ * is successful or not.
+ *
+ * @param timeUnit this controls what granularity is used for
+ * measuring latency.  The default is milliseconds,
+ * but other values are valid. The choice of this changes the name of the stat
+ * attached to the given [[StatsReceiver]]. For the common units,
+ * it will be "request_latency_ms".
+ *
+ * @note The innocent bystander may find the semantics with respect
+ * to backup requests a bit puzzling; they are entangled in legacy.
+ * "requests" counts the total number of requests: subtracting
+ * "success" from this produces the failure count. However, this
+ * doesn't allow for "shadow" requests to be accounted for in
+ * "requests". This is why we don't modify metrics for backup
+ * request failures.
+ */
+class StatsFilter[Req, Rep](
+  statsReceiver: StatsReceiver,
+  responseClassifier: ResponseClassifier,
+  exceptionStatsHandler: ExceptionStatsHandler,
+  timeUnit: TimeUnit
+) extends SimpleFilter[Req, Rep] {
+  import StatsFilter.SyntheticException
+
+  def this(
+    statsReceiver: StatsReceiver,
+    exceptionStatsHandler: ExceptionStatsHandler,
+    timeUnit: TimeUnit
+  ) = this(statsReceiver, ResponseClassifier.Default, exceptionStatsHandler, timeUnit)
+
+  def this(statsReceiver: StatsReceiver, exceptionStatsHandler: ExceptionStatsHandler) =
+    this(statsReceiver, exceptionStatsHandler, TimeUnit.MILLISECONDS)
+
+  def this(statsReceiver: StatsReceiver) = this(statsReceiver, StatsFilter.DefaultExceptions)
+
+  private[this] def latencyStatSuffix: String = {
+    timeUnit match {
+      case TimeUnit.NANOSECONDS => "ns"
+      case TimeUnit.MICROSECONDS => "us"
+      case TimeUnit.MILLISECONDS => "ms"
+      case TimeUnit.SECONDS => "secs"
+      case _ => timeUnit.toString.toLowerCase
+    }
+  }
+
+  private[this] val outstandingRequestCount = new LongAdder()
+  private[this] val dispatchCount = statsReceiver.counter("requests")
+  private[this] val successCount = statsReceiver.counter("success")
+  private[this] val latencyStat = statsReceiver.stat(s"request_latency_$latencyStatSuffix")
+  private[this] val outstandingRequestCountGauge =
+    statsReceiver.addGauge("pending") { outstandingRequestCount.sum() }
+
+  private[this] def isIgnorableResponse(rep: Try[Rep]): Boolean = rep match {
+    case Throw(f: FailureFlags[_]) if f.isFlagged(FailureFlags.Ignorable) =>
+      true
+    case Throw(BackupRequestLost) | Throw(WriteException(BackupRequestLost)) =>
+      true
+    case _ =>
+      false
+  }
+
+  def apply(request: Req, service: Service[Req, Rep]): Future[Rep] = {
+    val elapsed = Stopwatch.start()
+
+    outstandingRequestCount.increment()
+
+    val result = try {
+      service(request)
+    } catch {
+      case NonFatal(e) =>
+        Future.exception(e)
+    }
+
+    result.respond { response =>
+      outstandingRequestCount.decrement()
+      if (!isIgnorableResponse(response)) {
+        dispatchCount.incr()
+        responseClassifier.applyOrElse(
+          ReqRep(request, response),
+          ResponseClassifier.Default
+        ) match {
+          case ResponseClass.Failed(_) =>
+            latencyStat.add(elapsed().inUnit(timeUnit))
+            response match {
+              case Throw(e) =>
+                exceptionStatsHandler.record(statsReceiver, e)
+              case _ =>
+                exceptionStatsHandler.record(statsReceiver, SyntheticException)
+            }
+          case ResponseClass.Successful(_) =>
+            successCount.incr()
+            latencyStat.add(elapsed().inUnit(timeUnit))
+        }
+      }
+    }
+  }
+}
+
+private[finagle] object StatsServiceFactory {
+  val role: Stack.Role = Stack.Role("FactoryStats")
+
+  /**
+   * Creates a [[com.twitter.finagle.Stackable]] [[com.twitter.finagle.service.StatsServiceFactory]].
+   */
+  def module[Req, Rep]: Stackable[ServiceFactory[Req, Rep]] =
+    new Stack.Module1[param.Stats, ServiceFactory[Req, Rep]] {
+      val role: Stack.Role = StatsServiceFactory.role
+      val description: String = "Report connection statistics"
+      def make(_stats: param.Stats, next: ServiceFactory[Req, Rep]): ServiceFactory[Req, Rep] = {
+        val param.Stats(statsReceiver) = _stats
+        if (statsReceiver.isNull) next
+        else new StatsServiceFactory(next, statsReceiver)
+      }
+    }
+}
+
+class StatsServiceFactory[Req, Rep](factory: ServiceFactory[Req, Rep], statsReceiver: StatsReceiver)
+    extends ServiceFactoryProxy[Req, Rep](factory) {
+  private[this] val availableGauge = statsReceiver.addGauge("available") {
+    if (isAvailable) 1F else 0F
+  }
+}

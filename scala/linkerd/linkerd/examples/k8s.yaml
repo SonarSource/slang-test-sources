@@ -1,0 +1,18 @@
+# Do service discovery lookups against the k8s endpoints API.
+namers:
+  # This namer resolves to the internal IP of the destination pod.
+- kind: io.l5d.k8s
+  host: localhost
+  port: 8001
+  # This namer resolves to the external facing load balancer IP of the service
+- kind: io.l5d.k8s.external
+  experimental: true
+  host: localhost
+  port: 8001
+
+routers:
+- protocol: http
+  dtab: |
+    /svc => /#/io.l5d.k8s/foo/http;
+  servers:
+  - port: 4140

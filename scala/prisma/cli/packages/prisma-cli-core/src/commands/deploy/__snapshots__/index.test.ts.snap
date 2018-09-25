@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`deploy from empty to default definition 1`] = `
+"Success! Here is what changed:
+
+Types
+
+  User
+   + A new type with the name \`User\` is created.
+   ├─ +  A new field with the name \`createdAt\` and type \`DateTime!\` is created.
+   └─ +  A new field with the name \`updatedAt\` and type \`DateTime!\` is created.
+
+Permissions
+
+  Wildcard Permission
+   ? The wildcard permission for all operations is added.
+
+"
+`;
+
+exports[`deploy to local instance 1`] = `
+"
+
+Success! Created the following service:
+
+
+Types
+
+  User
+   + A new type with the name \`User\` is created.
+   ├─ +  A new field with the name \`createdAt\` and type \`DateTime!\` is created.
+   └─ +  A new field with the name \`updatedAt\` and type \`DateTime!\` is created.
+
+Permissions
+
+  Wildcard Permission
+   ? The wildcard permission for all operations is added.
+
+"
+`;

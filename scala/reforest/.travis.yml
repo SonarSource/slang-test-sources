@@ -1,0 +1,10 @@
+sudo: false
+language: java
+notifications:
+  email:
+    on_success: change 
+    on_failure: always
+script:
+    - mvn test jacoco:report
+after_success:
+    - mvn coveralls:report

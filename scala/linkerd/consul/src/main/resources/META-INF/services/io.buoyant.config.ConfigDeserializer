@@ -1,0 +1,2 @@
+io.buoyant.consul.v1.ConsistencyModeDeserializer
+io.buoyant.consul.v1.HealthStatusDeserializer

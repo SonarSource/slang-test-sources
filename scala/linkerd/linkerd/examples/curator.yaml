@@ -1,0 +1,16 @@
+# Do service discovery lookups against Curator.
+namers:
+- kind: io.l5d.curator
+  experimental: true
+  zkAddrs:
+  - host: localhost
+    port: 2181
+  basePath: /curator
+
+routers:
+- protocol: http
+  dtab: |
+    /svc => /#/io.l5d.curator;
+  servers:
+  - port: 4140
+    ip: 0.0.0.0

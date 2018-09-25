@@ -1,0 +1,247 @@
+@(status: gitbucket.core.service.PullRequestService.MergeStatus,
+  issue: gitbucket.core.model.Issue,
+  pullreq: gitbucket.core.model.PullRequest,
+  originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<div class="issue-comment-box" style="background-color: @if(status.hasProblem){ #fbeed5 }else{ #d8f5cd };">
+  <div class="box-content" style="border: 1px solid @if(status.hasProblem){ #c09853 }else{ #95c97e };padding:0">
+    <div id="merge-pull-request">
+      @if(!status.statuses.isEmpty){
+        <div class="build-statuses">
+          @defining(status.commitStateSummary){ case (summaryState, summary) =>
+            <a class="pull-right" id="toggle-all-checks" href="javascript:void(0);"></a>
+            <span class="build-status-icon text-@{summaryState.name}">@helpers.commitStateIcon(summaryState)</span>
+            <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, pullreq.commitIdTo)</strong>
+            <span class="text-@{summaryState.name}">— @summary checks</span>
+          }
+        </div>
+        <div class="build-statuses-list" style="@if(status.isAllSuccess){ display:none; }">
+          @status.statusesAndRequired.map { case (status, required) =>
+            <div class="build-status-item">
+              <div class="pull-right">
+                @if(required){ <span class="label label-success">Required</span> }
+                @status.targetUrl.map { url => <a href="@url">Details</a> }
+              </div>
+              <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
+              <strong>@status.context</strong>
+              @status.description.map { desc => <span class="muted">— @desc</span> }
+            </div>
+          }
+        </div>
+      }
+      <div style="padding:15px">
+        @if(status.hasConflict){
+          <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
+          <span class="strong">This branch has conflicts that must be resolved</span>
+          <div class="small">
+            @if(status.hasMergePermission){
+              <a href="#" class="show-command-line">Use the command line</a> to resolve conflicts before continuing.
+            } else {
+              Only those with write access to this repository can merge pull requests.
+            }
+          </div>
+          <div>
+            <hr>
+            @status.conflictMessage.map { message => @helpers.markdown(message, originRepository, false, true, false) }
+          </div>
+        } else {
+          @if(status.branchIsOutOfDate){
+            @if(status.hasUpdatePermission){
+              <div class="pull-right">
+                <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/update_branch">
+                  <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
+                  <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
+                </form>
+              </div>
+            }
+          <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
+          <span class="strong">This branch is out-of-date with the base branch</span>
+          <div class="small">
+            Merge the latest changes from <code>@pullreq.branch</code> into this branch.
+          </div>
+        } else {
+          @if(status.hasRequiredStatusProblem) {
+            <div class="merge-indicator merge-indicator-warning"><span class="octicon octicon-primitive-dot"></span></div>
+            <span class="strong">Required statuses must pass before merging.</span>
+            <div class="small">
+              All required status checks on this pull request must run successfully to enable automatic merging.
+            </div>
+          } else {
+            <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
+            @if(status.hasMergePermission){
+              <span class="strong">Merging can be performed automatically.</span>
+              <div class="small">
+                Merging can be performed automatically.
+              </div>
+            } else {
+              <span class="strong">This branch has no conflicts with the base branch.</span>
+              <div class="small">
+                Only those with write access to this repository can merge pull requests.
+              </div>
+            }
+          }
+        }
+      }
+      </div>
+      @if(status.hasMergePermission){
+        <div style="padding:15px; border-top:solid 1px #e5e5e5; background:#fafafa">
+          <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
+          &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
+          <div id="command-line" style="display: none;margin-top: 15px;">
+            <hr />
+            @if(status.hasConflict){
+              <span class="strong">Checkout via command line</span>
+              <p>
+                If you cannot merge a pull request automatically here, you have the option of checking
+                it out via command line to resolve conflicts and perform a manual merge.
+              </p>
+            } else {
+              <span class="strong">Merging via command line</span>
+              <p>
+                If you do not want to use the merge button or an automatic merge cannot be performed,
+                you can perform a manual merge on the command line.
+              </p>
+            }
+            @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", forkedRepository.httpUrl){
+              <div class="input-group-btn" data-toggle="buttons">
+                <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
+                @if(context.settings.ssh.enabled && context.loginAccount.isDefined){
+                  <label class="btn btn-sm btn-default" id="repository-url-ssh"><input type="radio">SSH</label>
+                }
+              </div>
+              <input type="text" class="form-control input-sm" value="@forkedRepository.httpUrl" id="repository-url" readonly />
+            }
+            <div style="margin-top: 10px;">
+              <p>
+                <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
+              </p>
+              @helpers.pre {
+                git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.branch}
+                git pull @{forkedRepository.httpUrl} @{pullreq.requestBranch}
+              }
+            </div>
+            <div>
+              <p>
+                <span class="strong">Step 2:</span> Merge the changes and update on the server.
+              </p>
+              @helpers.pre {
+                git checkout @{pullreq.branch}
+                git merge --no-ff @{pullreq.requestUserName}-@{pullreq.requestBranch}
+                git push origin @{pullreq.branch}
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    <div id="confirm-merge-form" style="display: none; padding: 12px;">
+      <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/merge" validate="true">
+        <div class="strong">
+          Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
+        </div>
+        <span id="error-message" class="error"></span>
+        <textarea name="message" style="height: 80px; margin-top: 8px; margin-bottom: 8px;" class="form-control">@issue.title</textarea>
+        <div>
+          <div class="btn-group">
+            <button id="merge-strategy-btn" class="dropdown-toggle btn btn-default" data-toggle="dropdown">
+              <span class="strong">
+                @(Map(
+                  "merge-commit" -> "Merge commit",
+                  "squash"       -> "Squash",
+                  "rebase"       -> "Rebase"
+                )(originRepository.repository.options.defaultMergeOption))
+              </span>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              @defining(originRepository.repository.options.mergeOptions.split(",")){ mergeOptions =>
+                @if(mergeOptions.contains("merge-commit")){
+                  <li>
+                    <a href="javascript:void(0);" class="merge-strategy" data-value="merge-commit">
+                      <strong>Merge commit</strong><br>These commits will be added to the base branch via a merge commit.
+                    </a>
+                  </li>
+                }
+                @if(mergeOptions.contains("squash")){
+                  <li>
+                    <a href="javascript:void(0);" class="merge-strategy" data-value="squash">
+                      <strong>Squash</strong><br>These commits will be combined into one commit in the base branch.
+                    </a>
+                  </li>
+                }
+                @if(mergeOptions.contains("rebase")){
+                  <li>
+                    <a href="javascript:void(0);" class="merge-strategy" data-value="rebase">
+                      <strong>Rebase</strong><br>These commits will be rebased and added to the base branch.
+                    </a>
+                  </li>
+                }
+              }
+            </ul>
+          </div>
+          <div class="pull-right">
+            <input type="button" class="btn btn-default" value="Cancel" id="cancel-merge-pull-request"/>
+            <input type="submit" class="btn btn-success" value="Confirm merge"/>
+            <input type="hidden" name="strategy" value="@originRepository.repository.options.defaultMergeOption"/>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function(){
+  $('.show-command-line').click(function(){
+    $('#command-line').toggle();
+    return false;
+  });
+  function setToggleAllChecksLabel(){
+    $("#toggle-all-checks").text($('.build-statuses-list').is(":visible") ? "Hide all checks" : "Show all checks");
+  }
+  setToggleAllChecksLabel();
+  $('#toggle-all-checks').click(function(){
+    $('.build-statuses-list').toggle();
+    setToggleAllChecksLabel();
+  })
+
+  $('#merge-pull-request-button').click(function(){
+    $('#merge-pull-request').hide();
+    $('#confirm-merge-form').show();
+  });
+  $('#cancel-merge-pull-request').click(function(){
+    $('#merge-pull-request').show();
+    $('#confirm-merge-form').hide();
+  });
+
+  @forkedRepository.sshUrl.map { sshUrl =>
+    $('#repository-url-http').click(function(e){
+      // Update URL box
+      $('#repository-url').val('@forkedRepository.httpUrl');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+      // Update command guidance
+      $('#merge-command').text($('#merge-command').text().replace(
+        '@sshUrl', '@forkedRepository.httpUrl'
+      ));
+      $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
+    });
+
+    $('#repository-url-ssh').click(function(e){
+      // Update URL box
+      $('#repository-url').val('@sshUrl');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+      // Update command guidance
+      $('#merge-command').text($('#merge-command').text().replace(
+        '@forkedRepository.httpUrl', '@sshUrl'
+      ));
+      $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
+    });
+  }
+
+  $('.merge-strategy').click(function(){
+    $('button#merge-strategy-btn > span.strong').text($(this).find('strong').text());
+    $('input[name=strategy]').val($(this).data('value'));
+  });
+});
+</script>

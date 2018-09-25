@@ -1,0 +1,27 @@
+{{#each routers}}
+  <div class="router router-{{this}} row" data-router="{{this}}">
+    <div class="summary row"></div>
+
+    <div class="combined-client-graph">
+      <div class="router-graph-header">Requests per client</div>
+      <canvas class="router-graph" height="181"></canvas>
+    </div>
+
+    <div class="router-stats row">
+      <div class="retries-bar-chart col-md-6"></div>
+      <div class="retries-stats col-md-6"></div>
+      <div class="clearfix"></div>
+    </div>
+
+    <div class="clients router-clients">
+      <div class="pull-left router-subsection-title">Clients</div>
+      <div class="pull-right client-toggle">
+        <a target="blank" class="expand-all">expand all</a> &middot;
+        <a target="blank" class="collapse-all">collapse all</a>
+      </div>
+    </div>
+    <div class="servers router-servers row">
+      <div class="router-subsection-title">Servers</div>
+    </div>
+  </div>
+{{/each}}

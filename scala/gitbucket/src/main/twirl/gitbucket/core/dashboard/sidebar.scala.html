@@ -1,0 +1,41 @@
+@(recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+<div class="main-sidebar">
+  <div class="sidebar">
+  <ul class="nav sidebar-menu">
+    <li class="header">Recent updated repositories</li>
+    @if(recentRepositories.isEmpty){
+      <li>No repositories</li>
+    } else {
+      <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find repository"/></form></li>
+      @recentRepositories.zipWithIndex.map { case (repository, i) =>
+        <li class="repo-link menu-item-hover">
+          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
+        </li>
+      }
+    }
+  </ul>
+  </div>
+</div>
+<div class="content-wrapper">
+  <div class="content body">
+    @body
+  </div>
+</div>
+<script>
+$(function(){
+  $('#filter-box').keyup(function(){
+    var inputVal = $('#filter-box').val();
+    $.each($('li.repo-link a'), function(index, elem) {
+      if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0 ) {
+        $(elem).parent().show();
+      } else {
+        $(elem).parent().hide();
+      }
+    });
+  });
+  $('form.sidebar-form').submit(function () {
+    return false;
+  });
+});
+</script>

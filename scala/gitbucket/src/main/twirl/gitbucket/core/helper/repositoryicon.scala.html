@@ -1,0 +1,10 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, large: Boolean)(implicit context: gitbucket.core.controller.Context)
+@if(repository.repository.isPrivate){
+  <i class="@{if(large){"mega-"}}octicon octicon-lock"></i>
+} else {
+  @if(repository.repository.originUserName.isDefined){
+    <i class="@{if(large){"mega-"}}octicon octicon-repo-forked"></i>
+  } else {
+    <i class="@{if(large){"mega-"}}octicon octicon-repo"></i>
+  }
+}

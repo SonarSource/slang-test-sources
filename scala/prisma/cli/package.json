@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "graphql-request": "^1.3.6",
+    "semver": "^5.4.1"
+  },
+  "scripts": {
+    "test": "./test.sh",
+    "build": "./scripts/build.sh",
+    "precommit": "./precommit.sh",
+    "release-all": "./scripts/release-all.sh"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "lint-staged": "^4.2.3"
+  }
+}

@@ -1,0 +1,80 @@
+@*
+* Copyright 2015 Yahoo Inc. Licensed under the Apache License, Version 2.0
+* See accompanying LICENSE file.
+*@
+@import scalaz.{\/}
+@(cluster:String, errorOrTopics: kafka.manager.ApiError \/ kafka.manager.TopicListExtended
+)(implicit af: features.ApplicationFeatures, messages: play.api.i18n.Messages, menus: models.navigation.Menus)
+
+@theMenu = {
+    @views.html.navigation.clusterMenu(cluster,"Topic","List",menus.clusterMenus(cluster)(
+        errorOrTopics.toOption.map(_.clusterContext.clusterFeatures).getOrElse(kafka.manager.features.ClusterFeatures.default)))
+}
+
+@topicScripts = {
+    @if(errorOrTopics.fold(err=>false,tl=>tl.list.headOption.map(opt => opt._2.map(ti => ti.clusterContext.config.displaySizeEnabled).getOrElse(false)).getOrElse(false))){
+        <script src="https://cdn.datatables.net/plug-ins/1.10.10/sorting/file-size.js"></script>
+        <script ype="text/javascript">
+        $(document).ready(function() {
+            $('#topics-table').DataTable( {
+                columnDefs: [
+                    { type: 'file-size', targets: 7 }
+                ],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+            } );
+        } );
+        </script>
+    } else {
+        <script ype="text/javascript">
+        $(document).ready(function() {
+            $('#topics-table').DataTable(
+                    {
+                        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+                    }
+            );
+        } );
+        </script>
+    }
+}
+
+@main(
+    "Topic List",
+    menu = theMenu,
+    breadcrumbs=views.html.navigation.breadCrumbs(models.navigation.BreadCrumbs.withViewAndCluster("Topics",cluster)),
+    scripts=topicScripts) {
+    <div class="col-md-12">
+        @features.app(features.KMTopicManagerFeature) {
+        <div class="panel panel-default">
+            <div class="panel-heading"><h4>Operations</h4></div>
+            <table class="table">
+                <tr>
+                    @features.app(features.KMReassignPartitionsFeature) {
+                    <td>
+                        <a href="@routes.ReassignPartitions.confirmMultipleAssignments(cluster)" class="submit-button btn btn-primary" role="button">Generate Partition Assignments</a>
+                    </td>
+                    <td>
+                        <a href="@routes.ReassignPartitions.runMultipleAssignments(cluster)" class="submit-button btn btn-primary" role="button">Run Partition Assignments</a>
+                    </td>
+                    }
+                    <td>
+                        <a href="@routes.Topic.addPartitionsToMultipleTopics(cluster)" class="submit-button btn btn-primary" role="button">Add Partitions</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3>Topics</h3></div>
+            @errorOrTopics.fold( 
+                views.html.errors.onApiError(_),
+                tl => views.html.topic.topicListContent(
+                        cluster,tl.list.map(t => (t, tl.deleteSet(t._1))),
+                        tl.underReassignments,
+                        tl.list.headOption.map(opt => opt._2.map(ti => ti.clusterContext.config.pollConsumers).getOrElse(false)).getOrElse(false),
+                        tl.list.headOption.map(opt => opt._2.map(ti => ti.clusterContext.config.displaySizeEnabled).getOrElse(false)).getOrElse(false)))
+        </div>
+    </div>
+}

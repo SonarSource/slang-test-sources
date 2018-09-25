@@ -1,0 +1,208 @@
+package io.buoyant.router
+package h2
+
+import java.net.InetSocketAddress
+import com.twitter.concurrent.AsyncQueue
+import com.twitter.finagle.buoyant.Dst
+import com.twitter.finagle.buoyant.h2._
+import com.twitter.finagle.{ChannelClosedException, Dtab, Failure, Path}
+import com.twitter.logging.Level
+import com.twitter.util.{Future, Promise, Throw}
+import io.buoyant.router.h2.ClassifiedRetries.BufferSize
+import io.buoyant.test.{BudgetedRetries, FunSuite}
+import org.scalatest.tagobjects.Retryable
+
+class RouterEndToEndTest
+  extends FunSuite
+  with ClientServerHelpers
+  with BudgetedRetries {
+
+  test("simple prior knowledge", Retryable) {
+    val cat = Downstream.const("cat", "meow")
+    val dog = Downstream.const("dog", "woof")
+    val dtab = Dtab.read(s"""
+        /p/cat => /$$/inet/127.1/${cat.port} ;
+        /p/dog => /$$/inet/127.1/${dog.port} ;
+
+        /h2/felix    => /p/cat ;
+        /h2/clifford => /p/dog ;
+      """)
+    val identifierParam = H2.Identifier { _ =>
+      req => {
+        val dst = Dst.Path(Path.Utf8("h2", req.authority), dtab)
+        Future.value(new RoutingFactory.IdentifiedRequest(dst, req))
+      }
+    }
+    val router = H2.serve(new InetSocketAddress(0), H2.router
+      .configured(identifierParam)
+      .factory())
+    val client = upstream(router)
+    try {
+      await(client.get("felix")(_ == Some("meow")))
+      await(client.get("clifford", "/the/big/red/dog")(_ == Some("woof")))
+    } finally {
+      setLogLevel(Level.OFF)
+      await(client.close())
+      await(cat.server.close())
+      await(dog.server.close())
+      await(router.close())
+    }
+  }
+
+  test("fails requests with connection-headers", Retryable) {
+    val dog = Downstream.const("dog", "woof")
+    val dtab = Dtab.read(s"""
+        /p/dog => /$$/inet/127.1/${dog.port} ;
+        /h2/clifford => /p/dog ;
+      """)
+    val identifierParam = H2.Identifier { _ => req =>
+      val dst = Dst.Path(Path.Utf8("h2", req.authority), dtab)
+      Future.value(new RoutingFactory.IdentifiedRequest(dst, req))
+    }
+    val router = H2.serve(new InetSocketAddress(0), H2.router
+      .configured(identifierParam)
+      .factory())
+    val client = upstream(router)
+    try {
+      val req = Request("http", Method.Get, "clifford", "/path", Stream.empty())
+      req.headers.set("connection", "close")
+      assert(await(client(req).liftToTry) == Throw(Reset.ProtocolError))
+    } finally {
+      setLogLevel(Level.OFF)
+      await(client.close())
+      await(dog.server.close())
+      await(router.close())
+    }
+  }
+
+  test("resets downstream on upstream cancelation", Retryable) {
+    val dogReqP = new Promise[Stream]
+    val dogRspP = new Promise[Stream]
+    @volatile var serverInterrupted: Option[Throwable] = None
+    dogRspP.setInterruptHandler { case e => serverInterrupted = Some(e) }
+    val dog = Downstream.service("dog") { req =>
+      dogReqP.setValue(req.stream)
+      dogRspP.map(Response(Status.Ok, _))
+    }
+
+    val dtab = Dtab.read(s"""
+        /p => /$$/inet/127.1 ;
+        /h2/clifford => /p/${dog.port} ;
+      """)
+    val identifierParam = H2.Identifier { _ =>
+      req => {
+        val dst = Dst.Path(Path.Utf8("h2", req.authority), dtab)
+        Future.value(new RoutingFactory.IdentifiedRequest(dst, req))
+      }
+    }
+    val router = H2.serve(new InetSocketAddress(0), H2.router
+      .configured(identifierParam)
+      .factory())
+    val client = upstream(router)
+    try {
+      val clientLocalStream = Stream()
+      val req = Request("http", Method.Get, "clifford", "/path", clientLocalStream)
+      val rspF = client(req)
+      val reqStream = await(dogReqP)
+      assert(!rspF.isDefined)
+
+      rspF.raise(Failure("failz", Failure.Interrupted))
+      assert(await(rspF.liftToTry) == Throw(Reset.Cancel))
+      eventually(assert(serverInterrupted == Some(Reset.Cancel)))
+
+    } finally {
+      setLogLevel(Level.OFF)
+      await(client.close())
+      await(dog.server.close())
+      await(router.close())
+    }
+  }
+
+  test("resets downstream on upstream disconnect", Retryable) {
+    val dogReqP = new Promise[Stream]
+    val dogRspP = new Promise[Stream]
+    val dog = Downstream.service("dog") { req =>
+      dogReqP.setValue(req.stream)
+      dogRspP.map(Response(Status.Ok, _))
+    }
+
+    val dtab = Dtab.read(s"""
+        /p => /$$/inet/127.1 ;
+        /h2/clifford => /p/${dog.port} ;
+      """)
+    val identifierParam = H2.Identifier { _ =>
+      req => {
+        val dst = Dst.Path(Path.Utf8("h2", req.authority), dtab)
+        Future.value(new RoutingFactory.IdentifiedRequest(dst, req))
+      }
+    }
+    val router = H2.serve(new InetSocketAddress(0), H2.router
+      .configured(identifierParam)
+      .configured(BufferSize(0L, 0L))
+      .factory())
+    val client = upstream(router)
+    try {
+      val clientLocalQ, serverLocalQ = new AsyncQueue[Frame]
+      val clientLocalStream = Stream(clientLocalQ)
+      val serverLocalStream = Stream(serverLocalQ)
+      val req = Request("http", Method.Get, "clifford", "/path", clientLocalStream)
+      val rspF = client(req)
+      val reqStream = await(dogReqP)
+      assert(!rspF.isDefined)
+
+      dogRspP.setValue(serverLocalStream)
+      serverLocalQ.offer(Frame.Data("boop", eos = false))
+      val rsp = await(rspF)
+      val reqReadF = reqStream.read()
+      val rspReadF = rsp.stream.read()
+
+      clientLocalQ.fail(new ChannelClosedException())
+      assert(await(reqReadF.liftToTry) == Throw(Reset.InternalError))
+
+    } finally {
+      setLogLevel(Level.OFF)
+      await(dog.server.close())
+      await(router.close())
+    }
+  }
+
+  test("resets upstream on downstream failure", Retryable) {
+    val dogReqP = new Promise[Stream]
+    val dogRspP = new Promise[Stream]
+    val dog = Downstream.service("dog") { req =>
+      dogReqP.setValue(req.stream)
+      dogRspP.map(Response(Status.Ok, _))
+    }
+
+    val dtab = Dtab.read(s"""
+        /p => /$$/inet/127.1 ;
+        /h2/clifford => /p/${dog.port} ;
+      """)
+    val identifierParam = H2.Identifier { _ =>
+      req => {
+        val dst = Dst.Path(Path.Utf8("h2", req.authority), dtab)
+        Future.value(new RoutingFactory.IdentifiedRequest(dst, req))
+      }
+    }
+    val router = H2.serve(new InetSocketAddress(0), H2.router
+      .configured(identifierParam)
+      .factory())
+    val client = upstream(router)
+    try {
+      val clientLocalStream = Stream()
+      val req = Request("http", Method.Get, "clifford", "/path", clientLocalStream)
+      val rspF = client(req)
+      val _ = await(dogReqP)
+      assert(!rspF.isDefined)
+
+      dogRspP.setException(Failure("failz", Failure.Rejected))
+      assert(await(rspF.liftToTry) == Throw(Reset.Refused))
+
+    } finally {
+      setLogLevel(Level.OFF)
+      await(client.close())
+      await(dog.server.close())
+      await(router.close())
+    }
+  }
+}

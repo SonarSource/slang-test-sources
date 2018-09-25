@@ -1,0 +1,21 @@
+@*
+* Copyright 2015 Yahoo Inc. Licensed under the Apache License, Version 2.0
+* See accompanying LICENSE file.
+*@
+@import scalaz.{\/}
+@(cluster: String, errorOrClusterView: kafka.manager.ApiError \/ kafka.manager.model.ActorModel.CMView
+)(implicit af: features.ApplicationFeatures, messages: play.api.i18n.Messages, menus: models.navigation.Menus)
+
+@theMenu = {
+    @views.html.navigation.clusterMenu(cluster,"Cluster","Summary",menus.clusterMenus(cluster)(
+        errorOrClusterView.toOption.map(_.clusterContext.clusterFeatures).getOrElse(kafka.manager.features.ClusterFeatures.default)))
+}
+
+@main(
+    "Kafka Manager",
+    menu = theMenu,
+    breadcrumbs=views.html.navigation.breadCrumbs(models.navigation.BreadCrumbs.withViewAndCluster("Summary",cluster))) {
+<div class="col-md-6 un-pad-me">
+    @errorOrClusterView.fold(views.html.errors.onApiError(_),views.html.cluster.clusterViewContent(cluster,_))
+</div>
+}

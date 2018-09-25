@@ -1,0 +1,30 @@
+scala_library(
+    sources = rglobs("*.scala"),
+    fatal_warnings = True,
+    provides = scala_artifact(
+        org = "com.twitter",
+        name = "finagle-base-http",
+        repo = artifactory,
+    ),
+    dependencies = [
+        "3rdparty/jvm/com/google/code/findbugs:jsr305",
+        "3rdparty/jvm/io/netty",
+        "3rdparty/jvm/io/netty:netty4",
+        "3rdparty/jvm/io/netty:netty4-codec-http",
+        "finagle/finagle-base-http/src/main/resources",
+        "finagle/finagle-core",
+        "finagle/finagle-http-cookie/src/main/java/com/twitter/finagle/http/netty3",
+        "finagle/finagle-netty3",
+        "finagle/finagle-toggle/src/main/scala",
+        "util/util-app",
+        "util/util-codec",
+        "util/util-collection",
+        "util/util-core",
+        "util/util-stats",
+    ],
+    exports = [
+        "3rdparty/jvm/io/netty",
+        "util/util-collection",
+        "util/util-core",
+    ],
+)

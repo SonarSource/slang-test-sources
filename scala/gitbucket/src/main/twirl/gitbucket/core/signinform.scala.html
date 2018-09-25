@@ -1,0 +1,36 @@
+@(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings,
+  userName: Option[Any] = None,
+  password: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+<div class="panel panel-default">
+  <div class="panel-heading strong">Sign in</div>
+  <ul class="list-group list-group-flush">
+    @if(context.settings.oidcAuthentication){
+      <li class="list-group-item">
+        <form action="@context.path/signin/oidc" method="POST">
+          <input type="hidden" name="hash"/>
+          <input type="submit" class="btn btn-success" value="Sign in with OpenID Connect"
+          onClick="this.form.hash.value = window.location.hash;"/>
+        </form>
+      </li>
+    }
+    <li class="list-group-item">
+      <form action="@context.path/signin" method="POST" validate="true" autocomplete="off">
+        <div class="form-group">
+          <label for="userName">Username:</label>
+          <span id="error-userName" class="error"></span>
+          <input type="text" name="userName" id="userName" class="form-control" autofocus value="@userName"/>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <span id="error-password" class="error"></span>
+          <input type="password" name="password" id="password" class="form-control" value="@password"/>
+        </div>
+        <input type="hidden" name="hash"/>
+        <input type="submit" class="btn btn-success" value="Sign in" onClick="this.form.hash.value = window.location.hash;"/>
+        @if(systemSettings.allowAccountRegistration){
+          or <a href="@context.path/register">Create new account</a>
+        }
+      </form>
+    </li>
+  </ul>
+</div>

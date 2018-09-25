@@ -1,0 +1,16 @@
+<div class="{{containerClass}}">
+  <div class="metric-header">
+    {{#if description}}
+      {{description}}
+    {{else}}
+      metric
+    {{/if}}
+  </div>
+  <div class="{{metricClass}} {{style}}">
+    {{#if value}}
+      {{value}}
+    {{else}}
+      0
+    {{/if}}
+  </div>
+</div>

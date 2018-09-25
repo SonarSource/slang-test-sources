@@ -1,0 +1,49 @@
+language: scala
+dist: trusty
+branches:
+  only:
+    - master
+    - /^release-/
+env:
+  global:
+  - HUGO_VERSION=0.26
+  - LOGBACK_ROOT_LEVEL=WARN
+  - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
+matrix:
+  include:
+  - jdk: oraclejdk8
+    scala: 2.12.6
+  - jdk: oraclejdk8
+    scala: 2.11.12
+  - jdk: oraclejdk10
+    scala: 2.12.6
+notifications:
+  webhooks:
+    urls:
+      - secure: "aD5b1XnAbGJi6YYofSUdradQngsxkG+xlrbev2kv/xSxD3LtzEiUrewODYmDCPiAL3biTi9/4Ye5mkC7g0ksW1X5ZpW46c5cxpuICE14Ke8EdGF4xK7HW70GvK4We9s8xDddHR4QrNk6G216B+9IPgrnT/VkCaJ327AM5oGWoDY="
+    on_success: change
+    on_failure: always
+    on_start: never
+sudo: required
+cache:
+  directories:
+  - "$HOME/.coursier/cache"
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/boot"
+
+install:
+  - scripts/install-hugo
+
+before_script:
+  - source scripts/helpers
+  - PATH="$HOME/bin:$PATH"
+  - decrypt_deploy_key
+  - decrypt_pgp_secrets
+  - configure_git
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION ci
+
+before_cache:
+  - cleanup_cache
+after_success:
+  - upload_codecov()

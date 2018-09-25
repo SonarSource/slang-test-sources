@@ -1,0 +1,48 @@
+@(targetTextId: String, copyButtonId: String, value: String, style: String = "")(html: Html = Html(""))
+@if(html.body.nonEmpty){
+  <div class="input-group" style="margin-bottom: 0px;">
+    @html
+    <span class="input-group-btn">
+      <span id="@copyButtonId" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
+        data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
+    </span>
+  </div>
+} else {
+  <span id="@copyButtonId" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
+    data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
+}
+<script>
+// copy to clipboard
+(function() {
+  // if document.execCommand('copy') is available, use it for copy.
+  if (document.queryCommandSupported('copy')) {
+    var title = $('#@copyButtonId').attr('title');
+    $('#@copyButtonId').tooltip({
+      @* if default container is used then 2 lines tooltip text is displayed because tooptip width is narrow. *@
+      container: 'body'
+    });
+    $('#@copyButtonId').on('click', function() {
+      var target = document.getElementById('@targetTextId');
+      if (!target) { @* target's id is incorrect. Fix argument's value *@
+        $('#@copyButtonId').attr('title', 'failed to copy').tooltip('fixTitle').tooltip('show');
+        return;
+      }
+      if (typeof target.select === 'function') {
+        target.select();
+      } else {
+        var range = document.createRange();
+        range.selectNodeContents(target);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      document.execCommand('copy');
+      $('#@copyButtonId').attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
+      $('#@copyButtonId').attr('title', title).tooltip('fixTitle');
+    });
+  } else {
+    // if copy is not supported, remove the copy button
+    $('#@copyButtonId').remove();
+  }
+})();
+</script>

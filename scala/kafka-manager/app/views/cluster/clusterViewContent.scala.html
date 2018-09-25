@@ -1,0 +1,30 @@
+@*
+* Copyright 2015 Yahoo Inc. Licensed under the Apache License, Version 2.0
+* See accompanying LICENSE file.
+*@
+@(cluster: String, clusterView: kafka.manager.model.ActorModel.CMView)(implicit messages: play.api.i18n.Messages)
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h3>Cluster Information</h3></div>
+    <table class="table">
+        <tbody>
+        <tr>
+            <td><b>Zookeepers</b></td><td>@clusterView.clusterContext.config.curatorConfig.zkConnect.replace(","," ")</td>
+        </tr>
+        <tr>
+            <td><b>Version</b></td><td>@clusterView.clusterContext.config.version.toString</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading"><h3>Cluster Summary</h3></div>
+    <table class="table">
+        <tbody>
+        <tr>
+            <td><b>Topics</b></td><td><a href="@routes.Topic.topics(cluster)">@clusterView.topicsCount</a></td>
+            <td><b>Brokers</b></td><td><a href="@routes.Cluster.brokers(cluster)">@clusterView.brokersCount</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

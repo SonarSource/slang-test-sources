@@ -1,0 +1,12 @@
+baseurl = "https://http4s.org/v0.18"
+contentDir = "../../target/scala-2.12/tut"
+dataDir = "../../target/hugo-data"
+languageCode = "en-us"
+title = "http4s"
+theme = "http4s.org"
+themesDir = "../../../website/src/hugo/themes"
+
+[[menu.main]]
+    name = "Scaladoc"
+    weight = 10000
+    url = "/api"

@@ -1,0 +1,238 @@
+@(title: String,
+  commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  members: List[(String, String, String)],
+  comments: List[gitbucket.core.model.Comment],
+  originId: String,
+  forkedId: String,
+  sourceId: String,
+  commitId: String,
+  content: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasOriginWritePermission: Boolean,
+  collaborators: List[String],
+  milestones: List[gitbucket.core.model.Milestone],
+  priorities: List[gitbucket.core.model.Priority],
+  labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("pulls", repository){
+    <div class="pullreq-info">
+      <div id="compare-edit">
+        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
+          @members.map { case (owner, name, defaultBranch) =>
+            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
+          }
+        }
+        @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
+          @originRepository.branchList.map { branch =>
+            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
+          }
+        }
+        ...
+        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
+          @members.map { case (owner, name, defaultBranch) =>
+            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name" data-default-branch="@defaultBranch">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+          }
+        }
+        @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
+          @forkedRepository.branchList.map { branch =>
+            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
+          }
+        }
+      </div>
+      <div class="check-conflict" style="display: none;">
+        <img src="@helpers.assets("/common/images/indicator.gif")"/> Checking...
+      </div>
+    </div>
+    @if(commits.nonEmpty && context.loginAccount.isDefined){
+      <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
+        <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
+        &nbsp;&nbsp;
+        <span class="muted">Discuss and review the changes in this comparison with others.</span>
+      </div>
+      <div id="pull-request-form" style="display: none; margin-bottom: 20px;">
+        <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+          <div class="row">
+            <div class="col-md-9">
+              <span class="error" id="error-title"></span>
+              <input type="text" name="title" value="@title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
+              @gitbucket.core.helper.html.preview(
+                repository         = repository,
+                content            = content,
+                enableWikiLink     = false,
+                enableRefsLink     = true,
+                enableLineBreaks   = true,
+                enableTaskList     = true,
+                hasWritePermission = true,
+                completionContext  = "issues",
+                style              = "height: 200px;"
+              )
+              <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+              <input type="hidden" name="targetBranch" value="@originId"/>
+              <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+              <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+              <input type="hidden" name="requestBranch" value="@forkedId"/>
+              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+              <input type="hidden" name="commitIdTo" value="@commitId"/>
+              <div class="align-right">
+                <input type="submit" class="btn btn-success" value="Create pull request"/>
+              </div>
+            </div>
+            <div class="col-md-3">
+              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), priorities, None, labels, hasOriginWritePermission, repository)
+            </div>
+          </div>
+        </form>
+      </div>
+    }
+    @if(commits.isEmpty){
+      <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
+        <h4>There isn't anything to compare.</h4>
+        <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
+      </div>
+      @*
+      <table class="table table-bordered table-hover table-issues">
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            <h4>There isn't anything to compare.</h4>
+            <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
+          </td>
+        </tr>
+      </table>
+      *@
+    } else {
+      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
+        <table class="fill-width">
+          <tr>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-commit"></i>
+              @defining(commits.flatten){ commits =>
+                <strong>@commits.size</strong> @helpers.plural(commits.size, "commit")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-diff"></i>
+              <strong>@diffs.size</strong> @helpers.plural(diffs.size, "file") changed
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-comment"></i>
+              @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
+                <strong>@comments.size</strong> commit @helpers.plural(comments.size, "comment")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-organization"></i>
+              @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
+                <strong>@contributors.size</strong> @helpers.plural(contributors.size, "contributor")
+              }
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div style="margin-bottom: 20px;">
+        @commits.map { day =>
+          <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
+            Commits on @helpers.date(day.head.commitTime)
+          </div>
+          <table style="width: 100%;">
+          @day.map { commit =>
+            <tr>
+              <td style="width: 20%;">
+                <i class="octicon octicon-git-commit"></i>
+                @helpers.avatarLink(commit, 20)
+                @helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")
+              </td>
+              <td><span class="monospace">@commit.shortMessage</span></td>
+              @*
+              <span class="badge" style="display: inline">@if(comments.isDefined){
+              @comments.get.flatMap @{
+              case comment: CommitComment => Some(comment)
+              case other => None
+              }.count(t => t.commitId == commit.id && !t.pullRequest)
+              }</span>
+              *@
+              <td style="width: 10%; text-align: right;">
+                <a href="@helpers.url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+              </td>
+            </tr>
+          }
+          </table>
+        }
+      </div>
+      @gitbucket.core.helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
+      <p>Showing you all comments on commits in this comparison.</p>
+      @gitbucket.core.issues.html.commentlist(None, comments, false, repository, None)
+    }
+  }
+}
+<script>
+$(function(){
+  function updateSelector(e){
+    e.parents('ul').find('i').attr('class', 'octicon');
+    e.find('i').addClass('octicon-check');
+    e.parents('div.btn-group').find('button span.strong').text(e.text());
+  }
+
+  $('a.origin-owner').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('default-branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
+  });
+
+  $('a.forked-owner').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('default-branch'));
+  });
+
+  $('a.origin-branch, a.forked-branch').click(function(){
+    updateSelector($(this));
+
+    location.href = '@context.path/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
+  });
+
+  $('#show-form').click(function(){
+    $('#create-pull-request').hide();
+    $('#pull-request-form').show();
+  });
+  if(location.search.substr(1).split("&").indexOf("expand=1")!=-1){
+    $('#show-form').click();
+  }
+
+  @if(context.loginAccount.isDefined){
+    function checkConflict(from, to){
+      $('.check-conflict').show();
+      $.get('@helpers.url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
+        function(data){ $('.check-conflict').html(data); });
+    }
+
+    checkConflict(
+      $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+      $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+      $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
+    );
+  }
+});
+</script>

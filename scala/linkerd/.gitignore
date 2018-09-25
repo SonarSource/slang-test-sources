@@ -1,0 +1,15 @@
+target/
+dist/
+logs/
+project/boot/
+project/plugins/project/
+project/plugins/src_managed/
+http.pid
+npm-debug.log
+.sbt-launch.jar
+.protoc
+.idea
+.iml
+.DS_Store
+
+**/*.iml

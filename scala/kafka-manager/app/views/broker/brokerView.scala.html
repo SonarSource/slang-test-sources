@@ -1,0 +1,39 @@
+@*
+* Copyright 2015 Yahoo Inc. Licensed under the Apache License, Version 2.0
+* See accompanying LICENSE file.
+*@
+@import scalaz.{\/}
+@(cluster:String, brokerId: Int, errorOrBrokerView: kafka.manager.ApiError \/ kafka.manager.model.ActorModel.BVView
+)(implicit af: features.ApplicationFeatures, messages: play.api.i18n.Messages, menus: models.navigation.Menus)
+
+@theMenu = {
+    @views.html.navigation.clusterMenu(cluster,"Brokers","",menus.clusterMenus(cluster)(
+        errorOrBrokerView.toOption.map(_.clusterContext.clusterFeatures).getOrElse(kafka.manager.features.ClusterFeatures.default)))
+}
+
+@brokerScripts = {
+    <script ype="text/javascript">
+        $(document).ready(function() {
+            $('#broker-table').DataTable(
+                    {
+                        "lengthMenu": [[-1, 50, 25, 10], ["All", 50, 25, 10]]
+                    }
+            );
+        } );
+    </script>
+}
+
+@main(
+    "Broker View",
+    menu = theMenu,
+    breadcrumbs=views.html.navigation.breadCrumbs(models.navigation.BreadCrumbs.withNamedViewAndCluster("Broker View",cluster,brokerId.toString)),
+    scripts=brokerScripts) {
+<div class="col-md-12 un-pad-me">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3><button type="button" class="btn btn-link" onclick="goBack()"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></button>Broker Id @brokerId</h3>
+        </div>
+    @errorOrBrokerView.fold[Html](views.html.errors.onApiError(_), views.html.broker.brokerViewContent(cluster, brokerId, _))
+    </div>
+</div>
+}

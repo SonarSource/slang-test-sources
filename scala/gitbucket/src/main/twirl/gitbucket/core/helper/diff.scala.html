@@ -1,0 +1,420 @@
+@(diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  newCommitId: Option[String],
+  oldCommitId: Option[String],
+  showIndex: Boolean,
+  issueId: Option[Int],
+  hasWritePermission: Boolean,
+  showLineNotes: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@if(showIndex){
+  <div class="pull-right" style="margin-bottom: 10px;">
+    @if(oldCommitId.isEmpty && newCommitId.isDefined) {
+      <a href="@helpers.url(repository)/patch/@newCommitId" class="btn btn-default">Patch</a>
+    }
+    @if(oldCommitId.isDefined && newCommitId.isDefined) {
+      <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
+    }
+    <div class="btn-group">
+      <a href="javascript:changeDisplaySetting('diff', 'unified');" id="btn-unified" class="btn btn-default">Unified</a>
+      <a href="javascript:changeDisplaySetting('diff', 'split');" id="btn-split" class="btn btn-default">Split</a>
+    </div>
+  </div>
+  Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
+  <ul id="commit-file-list" style="display: none;">
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    <li class="border">
+      <span class="pull-right diffstat" data-diff-id="@i"></span>
+      <a href="#diff-@i">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <i class="octicon octicon-diff-renamed"></i> @diff.oldPath -> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.ADD){
+          <i class="octicon octicon-diff-added"></i> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.MODIFY){
+          <i class="octicon octicon-diff-modified"></i> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <i class="octicon octicon-diff-removed"></i> @diff.oldPath
+        }
+      </a>
+    </li>
+    }
+  </ul>
+}
+@diffs.zipWithIndex.map { case (diff, i) =>
+  <a name="diff-@i"></a>
+  <table class="table table-bordered diff-outside" commitId="@newCommitId" fileName="@diff.newPath" data-diff-id="@i">
+    <tr>
+      <th style="font-weight: normal;" class="box-header">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            </div>
+          }
+          <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
+          <span class="monospace">@diff.oldPath → @diff.newPath</span>
+        }
+        @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            </div>
+          }
+          <span class="diffstat">
+          @if(diff.changeType == ChangeType.ADD){
+            <i class="octicon octicon-diff-added"></i>
+          } else {
+            <i class="octicon octicon-diff-modified"></i>
+          }
+          </span>
+          <span class="monospace">@diff.newPath</span>
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          @if(oldCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            </div>
+          }
+          <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
+          <span class="monospace">@diff.oldPath</span>
+        }
+        @if(diff.oldMode != diff.newMode){
+          <span class="monospace">@diff.oldMode → @diff.newMode</span>
+        }
+      </th>
+    </tr>
+    <tr>
+      <td style="padding: 0;">
+        @if(diff.oldObjectId == diff.newObjectId){
+          @if(diff.oldPath != diff.newPath){
+            <div class="diff-same">File renamed without changes</div>
+          } else {
+            <div class="diff-same">File mode changed</div>
+          }
+        } else {
+          @if(diff.newContent != None || diff.oldContent != None){
+            <div id="diffText-@i" class="diffText"></div>
+            <input type="hidden" id="newText-@i" data-file-name="@diff.oldPath" value="@diff.newContent">
+            <input type="hidden" id="oldText-@i" data-file-name="@diff.newPath" value="@diff.oldContent">
+          } else {
+            @if(diff.newIsImage || diff.oldIsImage){
+              <div class="diff-image-render diff2up">
+              @if(oldCommitId.isDefined && diff.oldIsImage){
+                <div class="diff-image-frame diff-old"><img src="@helpers.url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+              } else {
+                @if(diff.changeType != ChangeType.ADD){
+                  <div style="padding: 12px;">Not supported</div>
+                }
+              }
+              @if(newCommitId.isDefined && diff.newIsImage){
+                <div class="diff-image-frame diff-new"><img src="@helpers.url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+              } else {
+                @if(diff.changeType != ChangeType.DELETE){
+                  <div style="padding: 12px;">Not supported</div>
+                }
+              }
+              </div>
+            } else {
+              @if(diff.tooLarge){
+                <div style="padding: 12px;">Too large</div>
+              } else {
+                <div style="padding: 12px;">Not supported</div>
+              }
+            }
+          }
+        }
+      </td>
+    </tr>
+  </table>
+}
+<script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
+<link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
+<script>
+$(function(){
+  @if(showIndex){
+    $('#toggle-file-list').click(function(){
+      $('#commit-file-list').toggle();
+      if($(this).val() == 'Show file list'){
+        $(this).val('Hide file list');
+      } else {
+        $(this).val('Show file list');
+      }
+    });
+  }
+
+  window.params = {};
+
+  // Render diffs as unified mode initially
+  if(("&" + location.search.substring(1)).indexOf("&w=1") != -1){
+    $('.ignore-whitespace').prop('checked', true);
+    window.params['w'] = 1;
+  }
+  if(("&" + location.search.substring(1)).indexOf("&diff=split") != -1){
+    window.viewType = 0;
+    $('#btn-split').addClass('active');
+    window.params['diff'] = 'split';
+  } else {
+    window.viewType = 1;
+    $('#btn-unified').addClass('active');
+  }
+  renderDiffs();
+
+  $('.toggle-notes').change(function() {
+    if (!$(this).prop('checked')) {
+      $(this).closest('table').find('.not-diff.inline-comment-form').remove();
+    }
+    $(this).closest('table').find('.not-diff').toggle();
+  });
+
+  $('.ignore-whitespace').change(function() {
+    renderOneDiff($(this).closest("table").find(".diffText"), window.viewType);
+  });
+
+  function getInlineContainer(where) {
+    if (window.viewType == 0) {
+      if (where === 'new') {
+        return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
+      } else {
+        return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
+      }
+    }
+    return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+  }
+
+  if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
+    $('#comment-list').children('.inline-comment').hide();
+  }
+
+  function showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr){
+    // assemble Ajax url
+    var url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+    if (!isNaN(oldLineNumber) && oldLineNumber) {
+      url += ('&oldLineNumber=' + oldLineNumber)
+    }
+    if (!isNaN(newLineNumber) && newLineNumber) {
+      url += ('&newLineNumber=' + newLineNumber)
+    }
+    // send Ajax request
+    $.get(url, { dataType : 'html' }, function(responseContent) {
+      // create container
+      var tmp;
+      if (!isNaN(oldLineNumber) && oldLineNumber) {
+        if (!isNaN(newLineNumber) && newLineNumber) {
+          tmp = getInlineContainer();
+        } else {
+          tmp = getInlineContainer('old');
+        }
+      } else {
+        tmp = getInlineContainer('new');
+      }
+      // add comment textarea
+      tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
+      $tr.nextAll(':not(.not-diff):first').before(tmp);
+      // hide reply comment field
+      $(tmp).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').hide();
+      // focus textarea
+      tmp.find('textarea').focus();
+    });
+  }
+
+  // Add comment button
+  $('.diff-outside').on('click','table.diff .add-comment',function() {
+    var $this  = $(this);
+    var $tr    = $this.closest('tr');
+    var $check = $this.closest('table:not(.diff)').find('.toggle-notes');
+    if (!$check.prop('checked')) {
+      $check.prop('checked', true).trigger('change');
+    }
+    if (!$tr.nextAll(':not(.not-diff):first').prev().hasClass('inline-comment-form')) {
+      var commitId = $this.closest('.table-bordered').attr('commitId'),
+      fileName = $this.closest('.table-bordered').attr('fileName'),
+      oldLineNumber, newLineNumber;
+      if (window.viewType == 0) {
+        oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
+        newLineNumber = $this.parent().prev('.newline').attr('line-number');
+      } else {
+        oldLineNumber = $this.parent().prevAll('.oldline').attr('line-number');
+        newLineNumber = $this.parent().prevAll('.newline').attr('line-number');
+      }
+
+      showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
+    }
+  }).on('click', 'table.diff .btn-default', function() {
+    // Cancel comment form
+    $(this).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').show();
+    $(this).closest('.inline-comment-form').remove();
+  });
+
+  // Reply comment
+  $('.diff-outside').on('click', '.reply-comment',function(){
+    var $this = $(this);
+    var $tr    = $this.closest('tr');
+    var commitId = $this.closest('.table-bordered').attr('commitId');
+    var fileName = $this.data('filename');
+    var oldLineNumber = $this.data('oldline');
+    var newLineNumber = $this.data('newline');
+
+    showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
+  });
+
+  function renderOneCommitCommentIntoDiff($v, diff){
+    //var filename = $v.attr('filename');
+    var oldline  = $v.attr('oldline');
+    var newline  = $v.attr('newline');
+    var tmp;
+    if (typeof oldline !== 'undefined') {
+      if (typeof newline !== 'undefined') {
+        tmp = getInlineContainer();
+      } else {
+        tmp = getInlineContainer('old');
+      }
+      tmp.children('td:first').html($v.clone().show());
+      diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+    } else {
+      tmp = getInlineContainer('new');
+      tmp.children('td:last').html($v.clone().show());
+      diff.find('table.diff').find('.newline[line-number=' + newline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
+    }
+    if (!diff.find('.toggle-notes').prop('checked')) {
+      tmp.hide();
+    }
+  }
+
+  function renderStatBar(add, del){
+    if(add + del > 5){
+      if(add){
+        if(add < del){
+          add = Math.floor(1 + (add * 4 / (add + del)));
+        } else {
+          add = Math.ceil(1 + (add * 4 / (add + del)));
+        }
+      }
+      del = 5 - add;
+    }
+    var ret = $('<div class="diffstat-bar">');
+    for(var i = 0; i < 5; i++){
+      if(add){
+        ret.append('<span class="text-diff-added">■</span>');
+        add--;
+      } else if(del){
+        ret.append('<span class="text-diff-deleted">■</span>');
+        del--;
+      } else {
+        ret.append('■');
+      }
+    }
+    return ret;
+  }
+
+  function renderOneDiff(diffText, viewType){
+    var table = diffText.closest("table[data-diff-id]");
+    var i = table.data("diff-id");
+    var ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
+    diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace);
+    var add = diffText.find("table").attr("add") * 1;
+    var del = diffText.find("table").attr("del") * 1;
+    table.find(".diffstat").text(add + del + " ").append(renderStatBar(add, del)).attr("title", add + " additions & " + del + " deletions").tooltip();
+    $('span.diffstat[data-diff-id="' + i + '"]')
+        .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
+        .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
+
+    @if(hasWritePermission) {
+      diffText.find('.body').filter(function(i, e) {
+        return $(e).has('span').length > 0;
+      }).each(function(){
+        $('<b class="add-comment">+</b>').prependTo(this);
+      });
+    }
+    @if(showLineNotes){
+      var fileName = table.attr('filename');
+      $('.inline-comment').each(function(i, v) {
+        if($(this).attr('filename') == fileName){
+          renderOneCommitCommentIntoDiff($(this), table);
+        }
+      });
+    }
+    return table;
+  }
+
+  function renderReplyComment($table){
+    var elements = {};
+    var filename, newline, oldline;
+    $table.find('.comment-box-container .inline-comment').each(function(i, e){
+      filename = $(e).attr('filename');
+      newline = $(e).attr('newline');
+      oldline = $(e).attr('oldline');
+      var key = filename + '-' + newline + '-' + oldline;
+      elements[key] = {
+        element: $(e),
+        filename: filename,
+        newline: newline,
+        oldline: oldline
+      };
+    });
+    for(var key in elements){
+      filename = elements[key]['filename'];
+      oldline = elements[key]['oldline']; //? elements[key]['oldline'] : '';
+      newline = elements[key]['newline']; //? elements[key]['newline'] : '';
+
+      var $v = $('<div class="commit-comment-box reply-comment-box">')
+        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply..." '
+                       + 'data-filename="' + filename + '" '
+                       + 'data-newline="' + newline + '" '
+                       + 'data-oldline="' + oldline + '">'));
+
+      var tmp;
+      if (typeof oldline !== 'undefined') {
+        if (typeof newline !== 'undefined') {
+          tmp = getInlineContainer();
+        } else {
+          tmp = getInlineContainer('old');
+        }
+        tmp.children('td:first').html($v);
+      } else {
+        tmp = getInlineContainer('new');
+        tmp.children('td:last').html($v);
+      }
+      elements[key]['element'].closest('.not-diff').after(tmp);
+    }
+  }
+
+  function renderDiffs(){
+    var i = 0, diffs = $('.diffText');
+    function render(){
+      if(diffs[i]){
+        var $table = renderOneDiff($(diffs[i]), window.viewType);
+        @if(hasWritePermission) {
+          renderReplyComment($table);
+        }
+        i++;
+        setTimeout(render);
+      }
+    }
+    render();
+  }
+});
+
+function changeDisplaySetting(key, value){
+  var url = '';
+  window.params[key] = value;
+  for(key in window.params){
+    if(window.params[key] != ''){
+      if(url != ''){
+        url = url + '&' + key + '=' + window.params[key];
+      } else {
+        url = url + '?' + key + '=' + window.params[key];
+      }
+    }
+  }
+  location.href = url;
+}
+</script>

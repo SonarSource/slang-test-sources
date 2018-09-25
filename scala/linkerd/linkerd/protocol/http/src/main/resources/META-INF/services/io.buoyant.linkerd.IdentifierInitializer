@@ -1,0 +1,8 @@
+io.buoyant.linkerd.protocol.http.HeaderIdentifierInitializer
+io.buoyant.linkerd.protocol.http.HeaderTokenIdentifierInitializer
+io.buoyant.linkerd.protocol.http.MethodAndHostIdentifierInitializer
+io.buoyant.linkerd.protocol.http.PathIdentifierInitializer
+io.buoyant.linkerd.protocol.http.StaticIdentifierInitializer
+io.buoyant.linkerd.protocol.http.IngressIdentifierInitializer
+io.buoyant.linkerd.protocol.http.istio.IstioIdentifierInitializer
+io.buoyant.linkerd.protocol.http.istio.IstioIngressIdentifierInitializer
