@@ -1,7 +1,7 @@
 # slang-test-sources
 
 # scala
-
+```
 cd its/sources/scala
 
 git clone --depth 1 --branch 1.0.0-rc0             git@github.com:awslabs/deequ.git
@@ -29,3 +29,4 @@ find ../../sources/scala -type f \
 
 
 rm playframework/documentation/manual/gettingStarted/code/PlayConsole.scala
+```
