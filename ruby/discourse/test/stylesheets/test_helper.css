@@ -1,9 +1,0 @@
-@import '/stylesheets/desktop.css';
-
-.modal-backdrop {
-  display: none;
-}
-
-#reply-control {
-  transition-property: none !important;
-}
