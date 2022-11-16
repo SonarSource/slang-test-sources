@@ -1,0 +1,29 @@
+# General
+.DS_Store
+hs_err_*
+
+# Java/Eclipse/IDEA
+.settings
+.classpath
+.project
+.factorypath
+.gradle
+.idea
+*.iml
+bin
+build
+target
+out
+
+# Python
+__pycache__
+
+# Node.js
+node_modules
+
+# VSCode
+.vscode-test
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+*.vsix
