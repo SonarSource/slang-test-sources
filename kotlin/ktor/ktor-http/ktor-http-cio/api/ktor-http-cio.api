@@ -1,0 +1,167 @@
+public final class io/ktor/http/cio/CIOHeaders : io/ktor/http/Headers {
+	public fun <init> (Lio/ktor/http/cio/HttpHeadersMap;)V
+	public fun contains (Ljava/lang/String;)Z
+	public fun contains (Ljava/lang/String;Ljava/lang/String;)Z
+	public fun entries ()Ljava/util/Set;
+	public fun forEach (Lkotlin/jvm/functions/Function2;)V
+	public fun get (Ljava/lang/String;)Ljava/lang/String;
+	public fun getAll (Ljava/lang/String;)Ljava/util/List;
+	public fun getCaseInsensitiveName ()Z
+	public fun isEmpty ()Z
+	public fun names ()Ljava/util/Set;
+}
+
+public final class io/ktor/http/cio/CIOMultipartDataBase : io/ktor/http/content/MultiPartData, kotlinx/coroutines/CoroutineScope {
+	public fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;II)V
+	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun readPart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/cio/ChunkedTransferEncodingKt {
+	public static final fun decodeChunked (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun decodeChunked (Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun decodeChunked (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;)Lio/ktor/utils/io/WriterJob;
+	public static final fun decodeChunked (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;J)Lio/ktor/utils/io/WriterJob;
+	public static final fun encodeChunked (Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun encodeChunked (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/cio/ConnectionOptions {
+	public static final field Companion Lio/ktor/http/cio/ConnectionOptions$Companion;
+	public fun <init> ()V
+	public fun <init> (ZZZLjava/util/List;)V
+	public synthetic fun <init> (ZZZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClose ()Z
+	public final fun getExtraOptions ()Ljava/util/List;
+	public final fun getKeepAlive ()Z
+	public final fun getUpgrade ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/cio/ConnectionOptions$Companion {
+	public final fun getClose ()Lio/ktor/http/cio/ConnectionOptions;
+	public final fun getKeepAlive ()Lio/ktor/http/cio/ConnectionOptions;
+	public final fun getUpgrade ()Lio/ktor/http/cio/ConnectionOptions;
+	public final fun parse (Ljava/lang/CharSequence;)Lio/ktor/http/cio/ConnectionOptions;
+}
+
+public final class io/ktor/http/cio/HttpBodyKt {
+	public static final fun expectHttpBody (Lio/ktor/http/HttpMethod;JLjava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;Ljava/lang/CharSequence;)Z
+	public static final fun expectHttpBody (Lio/ktor/http/cio/Request;)Z
+	public static final fun expectHttpUpgrade (Lio/ktor/http/HttpMethod;Ljava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;)Z
+	public static final fun expectHttpUpgrade (Lio/ktor/http/cio/Request;)Z
+	public static final fun parseHttpBody (JLjava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseHttpBody (Lio/ktor/http/HttpProtocolVersion;JLjava/lang/CharSequence;Lio/ktor/http/cio/ConnectionOptions;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseHttpBody (Lio/ktor/http/cio/HttpHeadersMap;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/cio/HttpHeadersMap {
+	public final fun find (Ljava/lang/String;I)I
+	public static synthetic fun find$default (Lio/ktor/http/cio/HttpHeadersMap;Ljava/lang/String;IILjava/lang/Object;)I
+	public final fun get (Ljava/lang/String;)Ljava/lang/CharSequence;
+	public final fun getAll (Ljava/lang/String;)Lkotlin/sequences/Sequence;
+	public final fun getSize ()I
+	public final fun nameAt (I)Ljava/lang/CharSequence;
+	public final fun put (IIIIII)V
+	public final fun release ()V
+	public fun toString ()Ljava/lang/String;
+	public final fun valueAt (I)Ljava/lang/CharSequence;
+}
+
+public abstract class io/ktor/http/cio/HttpMessage : java/io/Closeable {
+	public fun close ()V
+	public final fun getHeaders ()Lio/ktor/http/cio/HttpHeadersMap;
+	public final fun release ()V
+}
+
+public final class io/ktor/http/cio/HttpParserKt {
+	public static final fun parseHeaders (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseRequest (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parseResponse (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class io/ktor/http/cio/MultipartEvent {
+	public abstract fun release ()V
+}
+
+public final class io/ktor/http/cio/MultipartEvent$Epilogue : io/ktor/http/cio/MultipartEvent {
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun getBody ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public fun release ()V
+}
+
+public final class io/ktor/http/cio/MultipartEvent$MultipartPart : io/ktor/http/cio/MultipartEvent {
+	public fun <init> (Lkotlinx/coroutines/Deferred;Lio/ktor/utils/io/ByteReadChannel;)V
+	public final fun getBody ()Lio/ktor/utils/io/ByteReadChannel;
+	public final fun getHeaders ()Lkotlinx/coroutines/Deferred;
+	public fun release ()V
+}
+
+public final class io/ktor/http/cio/MultipartEvent$Preamble : io/ktor/http/cio/MultipartEvent {
+	public fun <init> (Lio/ktor/utils/io/core/ByteReadPacket;)V
+	public final fun getBody ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public fun release ()V
+}
+
+public final class io/ktor/http/cio/MultipartKt {
+	public static final fun boundary (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun expectMultipart (Lio/ktor/http/cio/HttpHeadersMap;)Z
+	public static final fun parseBoundary (Ljava/lang/CharSequence;)Ljava/nio/ByteBuffer;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/http/cio/HttpHeadersMap;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/CharSequence;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parseMultipart (Lkotlinx/coroutines/CoroutineScope;Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Ljava/lang/Long;)Lkotlinx/coroutines/channels/ReceiveChannel;
+	public static final fun parsePart (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePart$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun parsePartBody (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePartBody$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/ByteWriteChannel;Lio/ktor/http/cio/HttpHeadersMap;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun parsePartHeaders (Lio/ktor/utils/io/ByteReadChannel;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun parsePreamble (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun parsePreamble$default (Ljava/nio/ByteBuffer;Lio/ktor/utils/io/ByteReadChannel;Lio/ktor/utils/io/core/BytePacketBuilder;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class io/ktor/http/cio/ParserException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/http/cio/Request : io/ktor/http/cio/HttpMessage {
+	public final fun getMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getUri ()Ljava/lang/CharSequence;
+	public final fun getVersion ()Ljava/lang/CharSequence;
+}
+
+public final class io/ktor/http/cio/RequestResponseBuilder {
+	public fun <init> ()V
+	public final fun build ()Lio/ktor/utils/io/core/ByteReadPacket;
+	public final fun bytes (Ljava/nio/ByteBuffer;)V
+	public final fun bytes ([BII)V
+	public static synthetic fun bytes$default (Lio/ktor/http/cio/RequestResponseBuilder;[BIIILjava/lang/Object;)V
+	public final fun emptyLine ()V
+	public final fun headerLine (Ljava/lang/CharSequence;Ljava/lang/CharSequence;)V
+	public final fun line (Ljava/lang/CharSequence;)V
+	public final fun release ()V
+	public final fun requestLine (Lio/ktor/http/HttpMethod;Ljava/lang/CharSequence;Ljava/lang/CharSequence;)V
+	public final fun responseLine (Ljava/lang/CharSequence;ILjava/lang/CharSequence;)V
+}
+
+public final class io/ktor/http/cio/Response : io/ktor/http/cio/HttpMessage {
+	public final fun getStatus ()I
+	public final fun getStatusText ()Ljava/lang/CharSequence;
+	public final fun getVersion ()Ljava/lang/CharSequence;
+}
+
+public final class io/ktor/http/cio/internals/CharsKt {
+	public static final fun parseDecLong (Ljava/lang/CharSequence;)J
+}
+
+public final class io/ktor/http/cio/internals/MutableRange {
+	public fun <init> (II)V
+	public final fun getEnd ()I
+	public final fun getStart ()I
+	public final fun setEnd (I)V
+	public final fun setStart (I)V
+	public fun toString ()Ljava/lang/String;
+}
+
