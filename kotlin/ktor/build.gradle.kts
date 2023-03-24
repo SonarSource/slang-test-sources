@@ -95,6 +95,7 @@ plugins {
     id("org.jetbrains.kotlinx.binary-compatibility-validator") version "0.12.1"
     id("kotlinx-atomicfu") version "0.18.5" apply false
     id("com.osacky.doctor") version "0.8.1"
+    id("org.sonarqube") version "latest.release"
 }
 
 allprojects {
