@@ -1,0 +1,25 @@
+public final class io/ktor/server/plugins/hsts/HSTSConfig : io/ktor/server/plugins/hsts/HSTSHostConfig {
+	public fun <init> ()V
+	public final fun withHost (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+}
+
+public class io/ktor/server/plugins/hsts/HSTSHostConfig {
+	public fun <init> ()V
+	public final fun getCustomDirectives ()Ljava/util/Map;
+	public final fun getIncludeSubDomains ()Z
+	public final fun getMaxAgeInSeconds ()J
+	public final fun getPreload ()Z
+	public final fun setIncludeSubDomains (Z)V
+	public final fun setMaxAgeInSeconds (J)V
+	public final fun setPreload (Z)V
+}
+
+public final class io/ktor/server/plugins/hsts/HSTSKt {
+	public static final fun getHSTS ()Lio/ktor/server/application/RouteScopedPlugin;
+}
+
+public final class io/ktor/server/plugins/hsts/KotlinTimeJvmKt {
+	public static final fun getMaxAgeDuration (Lio/ktor/server/plugins/hsts/HSTSConfig;)J
+	public static final fun setMaxAgeDuration-HG0u8IE (Lio/ktor/server/plugins/hsts/HSTSConfig;J)V
+}
+
