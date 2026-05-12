@@ -23,3 +23,25 @@ interface NullMethodAndReturn<T> {
 }
 
 class NullClass : NullMethodAndReturn<String> {}
+
+abstract class MyAbstract {
+    val otherValToTestAbstractOverride = 1
+    
+    abstract val name: String
+
+    abstract fun myFun()
+}
+
+class MyImplClass : MyAbstract() {}
+
+class My2ndClass : MyAbstract() {
+    override val name = "Nils"
+}
+
+
+// defect GH-366, part of the solution
+interface IThing {
+    fun behaviour
+}
+
+class Thing : IThing
