@@ -7,6 +7,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.function.BiPredicate
 import org.javacs.kt.util.tryResolving
 import org.javacs.kt.util.findCommandOnPath
+import org.javacs.kt.LOG
 import java.nio.file.Paths
 
 /** Backup classpath that find Kotlin in the user's Maven/Gradle home or kotlinc's libraries folder. */
@@ -16,8 +17,9 @@ object BackupClassPathResolver : ClassPathResolver {
 }
 
 fun findKotlinStdlib(): Path? =
-    findLocalArtifact("org.jetbrains.kotlin", "kotlin-stdlib")
-    ?: findKotlinCliCompilerLibrary("kotlin-stdlib")
+    findKotlinCliCompilerLibrary("kotlin-stdlib")
+    ?: findLocalArtifact("org.jetbrains.kotlin", "kotlin-stdlib")
+    ?: findAlternativeLibraryLocation("kotlin-stdlib")
 
 private fun findLocalArtifact(group: String, artifact: String) =
     tryResolving("$artifact using Maven") { tryFindingLocalArtifactUsing(group, artifact, findLocalArtifactDirUsingMaven(group, artifact)) }
@@ -32,7 +34,7 @@ private fun tryFindingLocalArtifactUsing(@Suppress("UNUSED_PARAMETER") group: St
                 val expected = "${artifact}-${version}.jar"
                 name == expected
             }
-            else -> name.startsWith(artifact) && name.endsWith(".jar")
+            else -> name.startsWith(artifact) && ("-sources" !in name) && name.endsWith(".jar")
         }
     }
     return Files.list(artifactDirResolution.artifactDir)
@@ -53,20 +55,36 @@ private fun findKotlinCliCompilerLibrary(name: String): Path? =
     findCommandOnPath("kotlinc")
         ?.toRealPath()
         ?.parent // bin
-        ?.parent // libexec
-        ?.resolve("lib")
+        ?.parent // libexec or "top-level" dir
+        ?.let {
+            // either in libexec or a top-level directory (that may contain libexec, or just a lib-directory directly)
+            val possibleLibDir = it.resolve("lib")
+            if (Files.exists(possibleLibDir)) {
+                possibleLibDir
+            } else {
+                it.resolve("libexec").resolve("lib")
+            }
+        }
         ?.takeIf { Files.exists(it) }
         ?.let(Files::list)
         ?.filter { it.fileName.toString() == "$name.jar" }
         ?.findFirst()
         ?.orElse(null)
+        ?.also {
+            LOG.info("Found Kotlin CLI compiler library $name at $it")
+        }
 
+
+// alternative library locations like for snap
+// (can probably just use elvis operator and multiple similar expressions for other install directories)
+private fun findAlternativeLibraryLocation(name: String): Path? =
+    Paths.get("/snap/kotlin/current/lib/${name}.jar").existsOrNull()
 
 private fun Path.existsOrNull() =
     if (Files.exists(this)) this else null
 
 private fun findLocalArtifactDirUsingMaven(group: String, artifact: String) =
-    LocalArtifactDirectoryResolution(mavenHome.resolve("repository")
+    LocalArtifactDirectoryResolution(mavenRepository
         ?.resolve(group.replace('.', File.separatorChar))
         ?.resolve(artifact)
         ?.existsOrNull(), "Maven")
@@ -104,4 +122,3 @@ private fun compareVersions(left: Path, right: Path): Int {
 private fun extractVersion(artifactVersionDir: Path): List<String> {
     return artifactVersionDir.toString().split(".")
 }
-

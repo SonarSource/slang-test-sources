@@ -6,10 +6,10 @@
 ```
 cd its/sources/kotlin
 
-git clone --depth 1 --branch 1.3.1 git@github.com:fwcd/kotlin-language-server.git
+git clone --depth 1 --branch 1.3.13 git@github.com:fwcd/kotlin-language-server.git
 rm -rf "kotlin-language-server/.git"
-# edit the file kotlin-language-server/build.gradle to add the following line in the "plugins { ... }" section:
-#   id "org.sonarqube" version "latest.release"
+# edit the file kotlin-language-server/build.gradle.tks to add the following line in the "plugins { ... }" section:
+#   id ("org.sonarqube") version "+"
 
 # test the build with
 cd kotlin-language-server

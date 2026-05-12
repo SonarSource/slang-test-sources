@@ -9,11 +9,15 @@ hs_err_*
 .factorypath
 .gradle
 .idea
+.metals
 *.iml
 bin
 build
 target
 out
+
+# Kotlin
+.kotlin
 
 # Python
 __pycache__
@@ -27,3 +31,4 @@ node_modules
 !.vscode/launch.json
 !.vscode/tasks.json
 *.vsix
+kls_database.db
